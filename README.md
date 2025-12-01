@@ -1,8 +1,8 @@
-## 프로젝트 개요
+# 프로젝트 개요
 
 사용자 후기 기반의 리뷰 커뮤니티로 베스트 후기·실시간 후기·검색 등 다양한 방식으로 후기를 탐색할 수 있는 플랫폼입니다. 게시글 작성, 이미지 업로드, 북마크, 댓글, 실시간 알림 등 커뮤니티 서비스에 필요한 기능을 제공합니다.
 
-## 프로젝트 목표
+# 프로젝트 목표
 
 여러 플랫폼에 흩어진 후기 정보를 한 곳에서 쉽게 탐색할 수 있는 공간을 만드는 것이 프로젝트의 가장 큰 목표였습니다.
 
@@ -11,42 +11,42 @@
 
 또한 **조회 => 반응(댓글/북마크) => 알림 => 재참여**로 이어지는 흐름이 끊기지 않도록 사용자가 자연스럽게 계속 참여할 수 있는 경험을 만드는 것도 중요한 목표였습니다.
 
-## 주요 기술 스택
+# 주요 기술 스택
 
-### 프레임워크 및 언어
+## 프레임워크 및 언어
 
 - Next.js 15
 - Typescript
 
-### 상태 관리
+## 상태 관리
 
 - Tanstack Query (서버 상태 관리)
 - Zustand (클라이언트 상태 관리)
 
-### UI 및 스타일링
+## UI 및 스타일링
 
 - Tailwind CSS
 - Radix UI, shadcn/ui
 - lucide-react
 
-### 에디터
+## 에디터
 
 - Tiptap
 
-### 모니터링
+## 모니터링
 
 - Sentry
 
-### 배포 및 운영
+## 배포 및 운영
 
 - AWS EC2 (Ubuntu)
 - Nginx
 - PM2
 - Github Actions + CodeDeploy (CI/CD 파이프라인)
 
-## 기술 선정 이유
+# 기술 선정 이유
 
-### Next.js
+## Next.js
 
 커뮤니티 서비스는 검색 유입이 중요해 게시글 본문이 검색 엔진이 바로 읽을 수 있는 형태로 제공돼야 했습니다.
 
@@ -54,7 +54,7 @@ CSR은 초기 HTML이 비어 있어 크롤러가 내용을 제대로 가져가�
 
 또 초기 로딩 성능이 중요해 리액트 단독 환경처럼 모든 자바스크립트 코드를 먼저 받는 구조보다 서버에서 필요한 컨텐츠만 먼저 내려주는 방식이 유리했습니다. 여기에 ISR, SSG 같은 페이지 단위 캐싱 전략과 확장된 fetch의 캐싱 옵션까지 활용할 수 있다는 점을 고려해 Next.js를 선택했습니다.
 
-### Tanstack Query
+## Tanstack Query
 
 커뮤니티 특성상 사용자마다 결과가 달라지는 데이터가 많아 변동이 잦은 영역은 서버 캐싱보다 클라이언트 캐싱이 더 적합했습니다.
 
@@ -64,7 +64,7 @@ Next.js의 서버 캐시가 요청 컨텍스트 기반이라는 점을 고려하
 
 추가로 Suspense 기반의 선언적 데이터 패칭과 전역 에러 핸들링으로 UI 코드가 간결해졌고 무한 스크롤, 페이지네이션 같은 게시판 서비스의 핵심 기능도 제공해 요구사항에 잘 맞았습니다.
 
-### Zustand
+## Zustand
 
 초기에 컴포넌트 외부의 순수 함수에서 전역 상태를 업데이트해야 하는 요구사항이 있었습니다. Context API는 훅 규칙 때문에 컴포넌트나 커스텀 훅 내부에서만 상태 변경이 가능해 이 요구사항을 해결할 수 없었습니다.
 
@@ -72,7 +72,7 @@ Zustand는 전역 스토어가 리액트와 분리된 순수 자바스크립트 
 
 프로젝트가 진행되면서 로그인, 알림, 에러 등 클라이언트 상태가 여러 영역으로 확장되었고 Context 기반으로 Provider를 계속 늘려가는 구조보다 각 상태를 독립된 스토어로 관리할 수 있는 Zustand 쪽이 더 단순하고 관리하기 편했습니다.
 
-### AWS EC2
+## AWS EC2
 
 서비스를 실제로 운영한다는 관점에서 비용 구조가 예측 가능한지가 중요했습니다. Vercel은 자동 배포와 관리 편의성 면에서 뛰어나지만 Pro 플랜부터 Data Transfer 비용이 급격히 올라가는 구조였습니다.
 
@@ -82,7 +82,7 @@ Zustand는 전역 스토어가 리액트와 분리된 순수 자바스크립트 
 
 EC2는 고정 리소스 기반이라 서버 사양을 조정하지 않는 한 예측 불가능한 추가 비용이 발생하지 않는다는 점도 운영 관점에서 안정적이라고 판단했습니다.
 
-## 아키텍처 구성도
+# 아키텍처 구성도
 
 <img width="1628" height="987" alt="modu-arc" align="center" src="https://github.com/user-attachments/assets/db020641-46e9-4b0b-aa78-9283c8a43223" />
 
@@ -93,19 +93,111 @@ EC2는 고정 리소스 기반이라 서버 사양을 조정하지 않는 한 �
 
 EC2 내부에서는 PM2에 의해 Next.js 프로세스가 관리되며, Blue-Green 방식으로 포트를 전환해 배포 시 자동 롤백과 다운타임을 최소화하고 있습니다.
 
-## 주요 구현 기능
-프로젝트에 기여한 주요 구현 기능입니다.
+# 주요 구현 기능
+프로젝트에서 직접 구현한 핵심 기능들입니다.
+
+## 메인페이지
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/672b1c24-be4f-4274-a91f-2a877bd0041a" width="800px" />
+</div>
+
+### 베스트 후기 섹션 (ISR 기반)
+
+메인페이지 상단에는 댓글, 북마크, 조회수를 종합해 일정 주기로 선정한 베스트 후기를 노출합니다. 커뮤니티의 경쟁 심리를 자극하고 양질의 후기 노출을 극대화하는 핵심 영역입니다.
+
+```tsx
+export const revalidate = 3600;
+
+export {MainPage as default} from '@/views/main';
+```
+
+해당 컨텐츠는 검색 엔진 노출 효과가 크다고 판단해 서버 렌더링을 이용했고, 백엔드 선정 주기(3시간)를 고려해 ISR(Incremental Static Regeneration)을 적용했습니다.
+
+### 실시간 후기 섹션 (CSR + Dynamic Import)
+
+가장 최근에 작성된 후기 6개를 캐러셀 형태로 노출하는 영역입니다. 커뮤니티의 활동성이 계속 유지되고 있다는 신호를 제공하기 위한 UI입니다.
+
+SEO 우선 순위가 높은 영역이 아니기 때문에, 정적 구조는 서버 컴포넌트로 유지하고 캐러셀과 데이터 패칭이 필요한 부분만 클라이언트 컴포넌트로 분리했습니다.
+
+```tsx
+const RecentReviewsCarousel = dynamic(() => import('./RecentReviewsCarousel'), {
+  ssr: false,
+  loading: () => <RecentReviewsCarouselLoading />,
+});
+
+export default function RecentReviewsClient() {
+  return (
+    <section>
+      <RQProvider LoadingFallback={<RecentReviewsCarouselLoading />}>
+        <RecentReviewsCarousel />
+      </RQProvider>
+    </section>
+  );
+}
+```
+
+SSR을 비활성화해 초기 로딩 시 서버가 처리해야 하는 비용을 줄였고 SEO가 중요한 베스트 후기 섹션에 서버 자원을 더 집중할 수 있도록 구성했습니다.
+
+## 검색 페이지 - 무한 스크롤, 정렬 옵션, 페이지네이션
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/9ccb4bd6-640c-4286-8348-7ab4c5a46043" width="800px" />
+</div>
+
+검색 기능은 '카테고리 기반 탐색'과 '키워드 기반 탐색'의 특성 차이에 따라 다른 탐색 방식을 제공하도록 설계했습니다.
+
+### 카테고리 기반 탐색 - 무한스크롤
+
+카테고리는 특정 키워드 없이 전체 데이터를 탐색하는 흐름이기 때문에 끊김 없는 탐색 경험을 제공하고자 무한스크롤을 적용했습니다.
+
+```tsx
+const rawSort = searchParams.get('sort');
+const sort = isSortKey(rawSort) ? rawSort : 'recent';
+
+const handleChange = (value: SortKey) => {
+  const queryString = new URLSearchParams({
+    ...options,
+    sort: value,
+  });
+
+  router.push(`?${queryString}`);
+};
+```
+
+정렬은 최신순 / 댓글순 / 북마크순 3가지 옵션을 제공하며 선택한 정렬 상태가 새로고침 시 유지되도록 URL 기반 상태 관리로 구현했습니다.
+
+무한스크롤 영역은 리액트 쿼리의 `useInfiniteQuery`를 사용해 구현했으며, 카테고리 변경, 정렬 변경 시 자동으로 재요청되도록 구현했습니다.
+
+### 키워드 기반 검색 - 페이지네이션
+
+키워드 검색은 사용자가 정확한 결과를 찾기 위해 특정 위치를 기억해야 하는 구조라 무한스크롤보다 페이지네이션이 적합하다고 판단했습니다.
+
+```tsx
+const currentPage = Number(searchParams.get('page')) || 1;
+const { results, total_pages } = useKeywordReviews(keyword, currentPage, sort);
+```
+
+현재 페이지 또한 useState 기반 상태 관리 방식이 아닌 URL 기반으로 관리해 새로고침 시 같은 페이지가 유지됩니다.
+
+```tsx
+<Pagination
+  currentPage={currentPage}
+  totalPages={total_pages}
+  generateUrl={(page) => 
+    `/search/${keyword}?page=${page}&sort=${sort}`
+  }
+/>
+```
+
+페이지네이션의 경우 직접 구현한 컴포넌트를 사용하며, 재사용을 위해 generateUrl 함수를 전달합니다. 함수는 page를 인자로 받아 이동하는 URL을 생성하는 구조입니다.
 
 <div align="center">
 
-| 메인페이지 내 베스트 후기 영역 및 실시간 후기 |
-| -- |
-| <img src="https://github.com/user-attachments/assets/672b1c24-be4f-4274-a91f-2a877bd0041a" width="800px" /> |
-| 베스트 후기 섹션은  |
 
 | 검색 - 무한스크롤 및 옵션 변경, 페이지네이션 |
 | -- |
-| <img src="https://github.com/user-attachments/assets/9ccb4bd6-640c-4286-8348-7ab4c5a46043" width="800px" /> |
+| <img src="" width="800px" /> |
 
 | 에디터 서식 지원 |
 | -- |
