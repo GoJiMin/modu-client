@@ -94,7 +94,18 @@ EC2는 고정 리소스 기반이라 서버 사양을 조정하지 않는 한 �
 EC2 내부에서는 PM2에 의해 Next.js 프로세스가 관리되며, Blue-Green 방식으로 포트를 전환해 배포 시 자동 롤백과 다운타임을 최소화하고 있습니다.
 
 # 주요 구현 기능
-프로젝트에서 직접 구현한 핵심 기능들입니다.
+프로젝트의 목표 달성을 위해 직접 설계하고 구현한 핵심 기능들입니다.
+
+## 요약
+
+- [메인페이지 - 하이브리드 렌더링](#메인페이지): SEO가 중요한 베스트 후기(ISR)와 실시간성이 중요한 실시간 후기(CSR + Dynamic Import) 영역을 분리해 서버 자원을 분배하고 초기 로딩 속도를 개선
+- [검색 페이지 - 탐색 방식 분리](#검색-페이지---무한-스크롤-정렬-옵션-페이지네이션): 카테고리 탐색(무한스크롤)과 키워드 검색(페이지네이션)의 사용자 의도를 구분해 URL 기반 상태 관리로 구현 및 탐색 경험 최적화
+- [Tiptap 기반 에디터 구현](#tiptap-기반-에디터-구현): `shouldRerenderOnTransaction` 제어 및 NodeView 커스터마이징을 통해 에디터의 불필요한 리렌더링을 최소화하고 Presigned URL을 활용한 이미지 업로드 진행률 표시 및 취소 로직 구현
+- [북마크](#북마크): Tanstack Query의 `useMutation`을 활용해 즉각적인 UI 업데이트, 실패 시 롤백 및 관련 캐시 무효화 로직을 적용
+- [댓글 작성](#댓글-작성): 페이지네이션 환경에서 마지막 페이지만 낙관적 업데이트 적용, 데이터 무결성을 위해 전체 페이지 캐시를 무효화
+- [실시간 반응 알림 (SSE)](#실시간-반응-알림): Server-Sent-Events 연결 전 preflight 요청 및 토큰 재발행, 실시간 반응(댓글/북마크) 알림을 토스트 및 뱃지로 표시
+- [게시글 상세 페이지 - On-Demand 캐싱](#게시글-상세-페이지---태그-기반-on-demand-캐싱): Next.js의 `fetch` 캐시와 `revalidateTag`를 활용해 읽기 성능 최적화, 쓰기 요청을 Next.js Route Handler를 프록시로 사용해 서버 캐시를 무효화하는 구조 설계
+- [Nginx 기반 Blue-Green 배포](#nginx-기반-blue-green-배포): 단일 vCPU EC2 환경에서의 다운타임 최소화를 위해 Nginx 포트 스위칭, PM2, Health Check를 조합하여 자동 롤백 및 다운타임 없는 배포 파이프라인 구축
 
 ## 메인페이지
 
@@ -900,6 +911,121 @@ export default function NotificationBell() {
 ```
 
 알림 뱃지는 알림이 발생했을 때 전역 상태에서 즉시 반영 됩니다. 알림 페이지로 이동할 때 읽음 처리합니다.
+
+## 게시글 상세 페이지 - 태그 기반 On-Demand 캐싱
+
+게시글 상세 페이지는 작성자가 수정하거나 삭제하기 전까지 모든 사용자에게 동일한 컨텐츠를 보여주는 페이지입니다.
+
+이런 특성상 Next.js의 On-Demand 방식(fetch 캐시 + tag 기반 무효화)을 적용하기에 매우 적합했고 최초 요청만 백엔드로 전달하고 이후 요청은 서버 캐시에서 바로 반환하는 구조로 설계했습니다.
+
+### 캐싱 구조
+
+```ts
+const res = await fetch(url, {
+  method: 'GET',
+  next: {
+    revalidate: false,
+    tags: ['review-13'],
+  },
+});
+```
+
+직접 무효화 전까지 캐싱을 유지하며 tags에 지정한 태그를 revalidateTag로 무효화할 수 있습니다.
+
+### Route Handler 프록시
+
+Next.js의 revalidateTag는 Server Action 또는 Route Handler에서만 호출이 가능합니다. 하지만 프로젝트의 모든 쓰기 요청은 리액트 쿼리의 useMutation을 통해 호출하는 구조였기 때문에 클라이언트 환경에서 서버 캐시를 무효화할 권한이 없었습니다.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/5d36974f-db94-4edc-baf9-153e00603ca9" width="800px" />
+</div>
+
+따라서 쓰기 요청을 Next.js 서버로 우회시키는 방식을 선택했는데, 구체적인 흐름은 아래와 같습니다.
+
+1. 클라이언트는 /api/reviews/[id]로 요청
+2. Next.js 서버는 요청을 검증한 뒤 백엔드로 전달
+3. 백엔드가 성공 응답을 보내면 Next.js 서버가 revalidateTag()를 호출해 서버 캐시 무효화
+
+```ts
+
+export async function DELETE(_: NextRequest, {params}: {params: Promise<{reviewId: string}>}) {
+  const {reviewId} = await params;
+
+  if (!reviewId) {
+    return NextResponse.json(
+      // 예외 처리
+    );
+  }
+
+  const cookieStore = await cookies();
+
+  const accessToken = cookieStore.get('accessToken');
+  const userNicknameToken = cookieStore.get('userNickname');
+
+  if (!accessToken || !userNicknameToken) {
+    return NextResponse.json(
+      // 예외 처리
+    );
+  }
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews/${reviewId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: `accessToken=${accessToken.value}; userNickname=${encodeURIComponent(userNicknameToken.value)}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorResponse = await res.json();
+    return NextResponse.json(
+       // 예외 처리
+    );
+  }
+
+  revalidateTag(`review-${reviewId}`);
+  return NextResponse.json(
+    // ...
+  );
+}
+```
+
+이렇게 브라우저에서 Next.js 서버로 전송된 쿠키를 읽어 백엔드 요청에 직접 실어 보냅니다.
+
+요청이 성공한 경우 On-Demand 캐시 무효화를 실행하고 태그 단위로 무효화됩니다.
+
+```tsx
+const {mutate, ...rest} = useMutation({
+  mutationFn: ({reviewId}: MutationVariables) => deleteReview(reviewId),
+  onSuccess: (_data, {category}) => {
+    toast.success({
+      title: '리뷰를 성공적으로 삭제했어요.',
+    });
+
+    const invalidateKeys = [
+      reviewsQueryKeys.category.category('all'),
+      reviewsQueryKeys.category.category(category),
+      reviewsQueryKeys.keyword.all(),
+    ];
+
+    invalidateKeys.forEach(key => {
+      queryClient.invalidateQueries({queryKey: key});
+    });
+
+    router.push('/search');
+  },
+});
+```
+
+클라이언트는 서버 캐시가 아닌 클라이언트 측 캐시만 관리하게 됩니다.
+
+### 이 구조가 정답이었는가?
+
+쓰기 요청이 Next.js 서버를 한 번 더 거치는 구조기 때문에 네트워크 홉이 하나 늘어난다는 단점이 분명히 존재합니다.
+
+하지만 쓰기 요청의 빈도보다 읽기 요청의 빈도가 압도적으로 많으며 서버 캐싱을 활용했을 때 읽기 성능이 크게 향상된다는 점과 백엔드 서버의 부하도 동시에 감소한다는 점을 고려했습니다.
+
+쓰기의 작은 비용과 읽기 성능의 향상의 교환이 충분히 합리적이라고 판단했습니다.
 
 ## Nginx 기반 Blue-Green 배포
 
