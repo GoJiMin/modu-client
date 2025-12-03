@@ -98,14 +98,14 @@ EC2 내부에서는 PM2에 의해 Next.js 프로세스가 관리되며, Blue-Gre
 
 ## 요약
 
-- [메인페이지 - 하이브리드 렌더링](#메인페이지): SEO가 중요한 베스트 후기(ISR)와 실시간성이 중요한 실시간 후기(CSR + Dynamic Import) 영역을 분리해 서버 자원을 분배하고 초기 로딩 속도를 개선
+- [메인페이지 - 하이브리드 렌더링](#메인페이지): SEO가 중요한 베스트 후기(ISR)와 실시간성이 중요한 실시간 후기(CSR + Dynamic Import) 영역을 분리해 서버 자원 분배 및 초기 로딩 속도 개선
 - [검색 페이지 - 탐색 방식 분리](#검색-페이지---무한-스크롤-정렬-옵션-페이지네이션): 카테고리 탐색(무한스크롤)과 키워드 검색(페이지네이션)의 사용자 의도를 구분해 URL 기반 상태 관리로 구현 및 탐색 경험 최적화
-- [Tiptap 기반 에디터 구현](#tiptap-기반-에디터-구현): `shouldRerenderOnTransaction` 제어 및 NodeView 커스터마이징을 통해 에디터의 불필요한 리렌더링을 최소화하고 Presigned URL을 활용한 이미지 업로드 진행률 표시 및 취소 로직 구현
-- [북마크](#북마크): Tanstack Query의 `useMutation`을 활용해 즉각적인 UI 업데이트, 실패 시 롤백 및 관련 캐시 무효화 로직을 적용
-- [댓글 작성](#댓글-작성): 페이지네이션 환경에서 마지막 페이지만 낙관적 업데이트 적용, 데이터 무결성을 위해 전체 페이지 캐시를 무효화
+- [Tiptap 기반 에디터 구현](#tiptap-기반-에디터-구현): `shouldRerenderOnTransaction` 제어 및 NodeView 커스터마이징을 통해 에디터의 불필요한 리렌더링 최소화, Presigned URL을 활용한 이미지 업로드 진행률 표시 및 취소 로직 구현
+- [북마크](#북마크): Tanstack Query의 `useMutation`을 활용해 즉각적인 UI 업데이트, 실패 시 롤백 및 관련 캐시 무효화 로직 적용
+- [댓글 작성](#댓글-작성): 페이지네이션 환경에서 마지막 페이지만 낙관적 업데이트 적용, 데이터 무결성을 위해 전체 페이지 캐시 무효화
 - [실시간 반응 알림 (SSE)](#실시간-반응-알림): Server-Sent-Events 연결 전 preflight 요청 및 토큰 재발행, 실시간 반응(댓글/북마크) 알림을 토스트 및 뱃지로 표시
-- [게시글 상세 페이지 - On-Demand 캐싱](#게시글-상세-페이지---태그-기반-on-demand-캐싱): Next.js의 `fetch` 캐시와 `revalidateTag`를 활용해 읽기 성능 최적화, 쓰기 요청을 Next.js Route Handler를 프록시로 사용해 서버 캐시를 무효화하는 구조 설계
-- [Nginx 기반 Blue-Green 배포](#nginx-기반-blue-green-배포): 단일 vCPU EC2 환경에서의 다운타임 최소화를 위해 Nginx 포트 스위칭, PM2, Health Check를 조합하여 자동 롤백 및 다운타임 없는 배포 파이프라인 구축
+- [게시글 상세 페이지 - On-Demand 캐싱](#게시글-상세-페이지---태그-기반-on-demand-캐싱): Next.js의 `fetch` 캐시와 `revalidateTag`를 활용해 읽기 성능 최적화, Next.js Route Handler를 프록시로 사용해 서버 캐시 무효화 구조 설계
+- [Nginx 기반 Blue-Green 배포](#nginx-기반-blue-green-배포): 단일 vCPU EC2 환경에서의 다운타임 최소화를 위해 Nginx 포트 스위칭, PM2, Health Check를 조합해 자동 롤백 및 다운타임을 최소화한한 배포 파이프라인 구축
 
 ## 메인페이지
 
@@ -149,6 +149,9 @@ export default function RecentReviewsClient() {
 ```
 
 SSR을 비활성화해 초기 로딩 시 서버가 처리해야 하는 비용을 줄였고 SEO가 중요한 베스트 후기 섹션에 서버 자원을 더 집중할 수 있도록 구성했습니다.
+
+보다 자세한 의사 결정 과정과 구현 배경을 [블로그](https://gojimin.com/posts/next-cache#1-%EB%A9%94%EC%9D%B8%ED%8E%98%EC%9D%B4%EC%A7%80---isr--csr)에 정리했습니다.
+
 
 ## 검색 페이지 - 무한 스크롤, 정렬 옵션, 페이지네이션
 
@@ -527,6 +530,8 @@ export default async function EditReview({reviewId, sessionUserNickname}: Props)
 이 과정에서 작성자 본인만 수정 가능하게 Next.js 서버 컴포넌트 단에서 1차 검증을 수행합니다. 물론 백엔드에서도 동일한 검증을 통해 2차 검증을 수행합니다.
 
 클라이언트는 HttpOnly 쿠키에 접근할 수 없어 조작이 불가능해 서버에서 상세 데이터의 닉네임과 쿠키 닉네임을 비교해 작성자 외 수정 불가능한 구조로 동작합니다.
+
+보다 자세한 구현 과정은 블로그에 [시리즈1](https://gojimin.com/posts/tiptap), [시리즈2](https://gojimin.com/posts/tiptap-2)로 정리했습니다.
 
 ## 북마크
 
@@ -1027,6 +1032,8 @@ const {mutate, ...rest} = useMutation({
 
 쓰기의 작은 비용과 읽기 성능의 향상의 교환이 충분히 합리적이라고 판단했습니다.
 
+보다 자세한 구현 과정은 [블로그](https://gojimin.com/posts/next-cache#2-%EA%B2%8C%EC%8B%9C%EA%B8%80-%EC%83%81%EC%84%B8%EB%B3%B4%EA%B8%B0-%ED%8E%98%EC%9D%B4%EC%A7%80---nextjs%EC%9D%98-on-demand-%EB%B0%A9%EC%8B%9D-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)에 정리했습니다.
+
 ## Nginx 기반 Blue-Green 배포
 
 프로젝트는 AWS EC2 t2.micro(단일 vCPU) 환경에서 운영되고 있어 PM2의 graceful reload나 클러스터 모드를 사용할 수 없었습니다.
@@ -1157,3 +1164,5 @@ Next.js는 SIGINT 수신 시 내부적으로 `server.close()`를 호출해 처�
 1. 단일 코어 환경에서도 다운타임을 최소화해 배포가 가능했습니다.
 2. 실패 시 자동으로 롤백이 가능했습니다.
 3. 실제 운영 환경에서 77회 배포 중 8회 배포가 실패했으나 서비스 중단 0회를 유지했습니다.
+
+보다 자세한 구현 과정은 [블로그](https://gojimin.com/posts/zero-downtime-deployment)에 정리했습니다.
