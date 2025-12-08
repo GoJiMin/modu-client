@@ -7,9 +7,10 @@ type Props = {
   comment: Comment;
   userNickname: string | null;
   reviewId: number;
+  page: number;
 };
 
-export default function CommentCard({comment, userNickname, reviewId}: Props) {
+export default function CommentCard({comment, userNickname, reviewId, page}: Props) {
   const {author_nickname, content, created_at, profile_image} = comment;
   const isAuthor = userNickname === author_nickname;
 
@@ -21,13 +22,13 @@ export default function CommentCard({comment, userNickname, reviewId}: Props) {
     deleteReviewComment({
       commentId: comment.id,
       reviewId,
+      page,
     });
   };
 
   return (
     <>
       <div className="flex min-h-[100px] gap-3 mx-2 px-3 pt-5 mb-5 bg-slate-100 rounded-lg relative">
-        {isPending && <div className="z-10 absolute inset-0 bg-gray-300/50 rounded-lg animate-pulse" />}
         <Avatar src={profile_image} alt={`${author_nickname}님의 프로필 이미지`} />
         <article className="w-full flex flex-col">
           <div className="flex items-center gap-2 mb-1">

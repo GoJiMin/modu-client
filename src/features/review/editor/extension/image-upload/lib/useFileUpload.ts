@@ -7,8 +7,6 @@ export default function useFileUpload(options: UploadOptions) {
   const [fileItem, setFileItem] = useState<FileItem | null>(null);
 
   const uploadFile = async (file: File): Promise<string | null> => {
-    if (file.size > options.maxSize) throw createClientError('MAX_SIZE_EXCEEDED');
-
     const abortController = new AbortController();
 
     const newFileItem: FileItem = {
@@ -21,6 +19,8 @@ export default function useFileUpload(options: UploadOptions) {
     setFileItem(newFileItem);
 
     try {
+      if (file.size > options.maxSize) throw createClientError('MAX_SIZE_EXCEEDED');
+
       const url = await options.upload(
         file,
         (event: {progress: number}) => {

@@ -18,7 +18,7 @@ export default function CommentsList({comments, currentPage, totalPages, reviewI
       <ul className="flex flex-col gap-5 mt-6">
         {comments.map(comment => (
           <li key={comment.id}>
-            <CommentCard comment={comment} userNickname={userNickname} reviewId={reviewId} />
+            <CommentCard comment={comment} userNickname={userNickname} reviewId={reviewId} page={currentPage} />
           </li>
         ))}
       </ul>
