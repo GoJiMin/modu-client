@@ -134,8 +134,16 @@ PM2 graceful reload 불가 및 단일 vCPU 환경에서 발생한 배포 다운�
 - Health Check 기반 자동 롤백
 - 릴리즈 폴더 및 심볼릭 링크 기반 전환
 - 기존 프로세스 graceful shutdown
-- 다운타임 4~5초 => 1~2초 (약 2배 이상 개선)
+- 다운타임 4 ~ 5초 => 1 ~ 2초 (약 2배 이상 개선)
 - 77회 배포 중 8회 실패했지 서비스 중단 0회 유지
+
+### 에러 중앙화 - API 요청/응답 구조 단일화 및 UX 일관성 확보 - [이동하기](#에러-중앙화---api-요청응답-구조-단일화-및-ux-일관성-확보)
+
+흩어져 있던 try/catch를 단일 request 함수로 모아 예외 처리를 중앙화하고, 리액트 쿼리 + 전역 스토어로 에러 흐름을 통합해 화면마다 다르던 에러 UI를 일관된 규칙(대체 UI/토스트)으로 제공
+
+- 에러 응답 구조 변경 등 수정 범위를 단일 지점으로 중앙화해 유지보수 범위 축소
+- GET 요청 실패는 대체 UI, 쓰기 요청 실패는 토스트 등 에러 UX 규칙을 명확하게 정리
+- API가 늘어나도 에러 처리 비용이 증가하지 않는 구조 확보
 
 ### Tiptap 기반 에디터 구현 - [이동하기](#tiptap-기반-에디터-구현)
 
@@ -453,6 +461,134 @@ Next.js는 SIGINT 신호를 받으면 내부적으로 server.close()를 호출�
 3. 실제 운영 환경에서 77회 배포 중 8회 배포가 실패했으나 서비스 중단 0회를 유지했습니다.
 
 보다 자세한 구현 과정은 [블로그](https://gojimin.com/posts/zero-downtime-deployment)에 정리했습니다.
+
+## 에러 중앙화 - API 요청/응답 구조 단일화 및 UX 일관성 확보
+
+### 배경
+
+프로젝트 초기에는 각 API 요청 함수마다 개별적으로 try/catch를 작성해 예외를 처리했습니다. 하지만 엔드포인트가 늘어날수록 몇 가지 문제가 눈에 띄었습니다.
+
+1. 화면마다 에러 UX가 달라 일관성이 없었다.
+   - 어떤 곳은 상태 기반, 어떤 곳은 토스트, 또 어떤 곳은 에러 바운더리를 사용해 동일한 종류의 에러도 화면마다 다르게 제공됐습니다.
+2. 백엔드의 에러 응답이 변경될 때 유지보수 비용이 커졌다.
+   - 에러 구조가 바뀌면 요청 함수를 돌아다니며 모든 예외 처리문을 수정해야 했습니다.
+
+API가 늘어날수록 예외 처리 비용이 점점 증가했고 개발 효율과 에러 UX 모두에 영향을 끼치는 구조였습니다. 이 문제를 해결하기 위해 에러를 중앙에서 관리하는 구조가 필요하다고 판단했습니다.
+
+### 구현 1 - 모든 API 요청을 단일 진입점 request()로 통합
+
+```ts
+export async function request(url, options) {
+  const response = await fetch(url, {...options});
+
+  if (!response.ok) {
+    const errorInfo = await response.json()
+    const {status} = response;
+
+    if (options.method === 'GET') {
+      throw new RequestGetError({status, ...errorInfo});
+    }
+
+    throw new RequestError({status, ...errorInfo});
+  }
+
+  return response.json()
+}
+```
+
+request 함수는 백엔드와의 통신에서 유일한 진입점으로 다음을 담당합니다.
+1. 요청 실행
+2. 성공/실패 판단
+3. 요청 성격에 따라 에러 객체 생성 및 throw
+
+API 요청 함수들은 request 함수만 호출하면 되고 에러 해석과 분기는 모두 request 함수에서 담당합니다.
+
+이 구조가 중요한 이유는
+- 어디에서 에러가 발생해도 동일한 구조의 에러 객체가 전달되고
+- UI 레벨에서 GET/POST/토큰 만료 등을 직접 분기하지 않아도 되며
+- 에러 처리의 제어권을 호출부가 아닌 request 함수가 갖게 됩니다.
+
+#### GET 요청의 에러 생성자를 분리한 이유
+
+GET 요청 실패는 페이지를 구성할 수 없는 경우가 많기 때문에 핸들링 지점에서 instanceof 연산자만으로 에러 처리 방식(대체 UI, 토스트 등)을 명확히 구분할 수 있도록 별도의 에러 클래스를 적용했습니다.
+
+### 구현 2 - 리액트 쿼리를 사용한 전역 에러 구독
+
+리액트 쿼리는 QueryCache와 MutationCache를 통해 각 요청의 에러를 가로챌 수 있습니다.
+
+```ts
+// 전역 에러 스토어
+const globalErrorStore = create(set => ({
+  error: null,
+  updateError: error => set({error}),
+}));
+
+// 쿼리 프로바이더
+throwOnError: (error: Error) => error instanceof RequestGetError && error.errorHandlingType === 'errorBoundary',
+
+queryCache: new QueryCache({
+  onError(error) {
+    if (error instanceof RequestGetError && error.errorHandlingType === 'errorBoundary') return;
+    if (error instanceof RequestError) updateError(error); // 전역 스토어 업데이트 함수
+  },
+}),
+mutationCache: new MutationCache({
+  onError(error) {
+    if (error instanceof RequestGetError && error.errorHandlingType === 'errorBoundary') return;
+    if (error instanceof RequestError) updateError(error);
+  },
+}),
+```
+
+request 함수가 에러 객체의 성격을 분리해주기 때문에
+- GET 요청이면서 대체 UI 핸들링 대상은 throwOnError로 상위로 전파하고
+- 그 외 요청 에러는 전역 스토어에 저장해 공통 처리합니다.
+
+### 구현 3 - 전역 스토어의 에러 구독 + 공통 에러 처리리
+
+```tsx
+export default function GlobalErrorDetector({children}: Props) {
+  const globalError = useGlobalError();
+
+  useEffect(() => {
+    if (!globalError) return;
+
+    if (예측가능한서버에러인지(globalError)) {
+      toast.error({
+        title: '에러가 발생했어요.',
+        description: SERVER_ERROR_MESSAGE[globalError.name],
+      });
+    }
+
+    throw globalError;
+  }, [globalError, router]);
+
+  return children;
+}
+```
+
+이 컴포넌트는 전역 에러 스토어를 구독해
+- 예측 가능한 에러는 토스트를 표시
+- 예측 불가능한 에러는 상위로 전파해 글로벌 에러 바운더리에서 처리
+라는 규칙을 적용합니다.
+
+이런 흐름으로 모든 화면은 동일한 에러 처리 전략을 따르게 되고 페이지마다 따로 에러를 처리할 필요가 없어지게 됩니다.
+
+### 결과
+
+이 구조를 적용해 얻은 효과입니다.
+1. 에러 처리 로직이 request 함수로 모여 중복 코드가 사라졌다.
+   - 실제로 중간에 백엔드 에러 응답 구조가 바뀌었으나 request 함수만 수정해도 전역에 반영 가능해 유지보수 비용이 줄었습니다.
+2. 에러 UX 제공에 일관된 규칙이 적용된다.
+   - 읽기 요청(GET) 실패 => 대체 UI
+   - 쓰기 요청(POST/PUT/DELETE) 실패 => 토스트
+   - 예측 가능한 에러 => 토스트
+   - 예측 불가능한 에러 => 대체 UI
+   - 이렇게 API 호출 위치와 상관 없이 규칙에 따라 동일한 UX를 제공합니다.
+4. API가 늘어나도 에러 처리 비용이 증가하지 않는다.
+   - 개발자는 비즈니스 로직에만 집중하고, 에러 처리는 자동으로 중앙화된 규칙을 따릅니다.
+  
+보다 자세한 구현 과정은 [블로그](https://gojimin.com/posts/frontend-error-2)에 정리했습니다.
 
 ## 검색 페이지 - 무한 스크롤, 정렬 옵션, 페이지네이션
 
