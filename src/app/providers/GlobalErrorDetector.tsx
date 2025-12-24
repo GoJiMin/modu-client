@@ -8,6 +8,7 @@ import isClientError from '@/shared/lib/utils/isClientError';
 import toast from '@/shared/lib/utils/toastService';
 import {ERROR_MESSAGE, SERVER_ERROR_MESSAGE} from '@/shared/lib/consts/errorMessage';
 import {reportError} from '@/shared/lib/utils/reportError';
+import {useErrorBoundary} from 'react-error-boundary';
 
 type Props = {
   children: React.ReactNode;
@@ -16,6 +17,8 @@ type Props = {
 export default function GlobalErrorDetector({children}: Props) {
   const globalError = useGlobalError();
   const router = useRouter();
+
+  const {showBoundary} = useErrorBoundary();
 
   useEffect(() => {
     if (!globalError) return;
@@ -44,8 +47,7 @@ export default function GlobalErrorDetector({children}: Props) {
       return;
     }
 
-    // 미리 약속한 에러가 아닌 경우 전역 에러 바운더리로 처리합니다.
-    throw globalError;
+    showBoundary(globalError);
   }, [globalError, router]);
 
   return children;
