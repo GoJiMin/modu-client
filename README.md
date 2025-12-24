@@ -581,7 +581,7 @@ export default function GlobalErrorDetector({children}: Props) {
       });
     }
 
-    throw globalError;
+    showBoundary(globalError);
   }, [globalError, router]);
 
   return children;
