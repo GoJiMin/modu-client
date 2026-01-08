@@ -48,7 +48,7 @@ export default function GlobalErrorDetector({children}: Props) {
     }
 
     showBoundary(globalError);
-  }, [globalError, router]);
+  }, [globalError, router, showBoundary]);
 
   return children;
 }
