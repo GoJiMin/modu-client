@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
       {protocol: 'https', hostname: 'picsum.photos'},
       {protocol: 'https', hostname: 'd1izijuzr22yly.cloudfront.net'},
     ],
+    qualities: [60, 75],
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

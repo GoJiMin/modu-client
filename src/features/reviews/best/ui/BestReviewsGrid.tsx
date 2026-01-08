@@ -24,7 +24,11 @@ export default function BestReviewsGrid({filteredReview}: Props) {
       {reviews.map((card, index) => {
         const shouldPrioritize = index < 3;
 
-        return <BestReviewCard key={card.board_id} card={card} priority={shouldPrioritize} />;
+        return (
+          <li key={card.board_id}>
+            <BestReviewCard card={card} priority={shouldPrioritize} />
+          </li>
+        );
       })}
     </ul>
   );

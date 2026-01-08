@@ -5,11 +5,11 @@ import {cva} from 'class-variance-authority';
 import {cn} from '@/shared/lib/utils/cn';
 import {Badge} from '@/shared/ui/components';
 
-const imageWrapperVariants = cva('w-[140px] h-[140px] overflow-hidden rounded-[30px] mb-1 shadow-md', {
+const imageWrapperVariants = cva('relative overflow-hidden rounded-[30px] mb-1 shadow-md', {
   variants: {
     variant: {
       default: 'shadow-black w-[250px] h-[180px] mt-3 mb-3',
-      my: 'shadow-gray-400',
+      my: 'w-[140px] h-[140px] shadow-gray-400',
     },
   },
   defaultVariants: {
@@ -44,17 +44,19 @@ export default function CardDescription({
       <div className="flex flex-col items-center text-center">
         <div className={cn(imageWrapperVariants({variant}))}>
           <Image
-            className="w-full h-full object-cover aspect-square"
             src={image_url}
+            alt={`카드 이미지: ${title}`}
+            className="w-full h-full object-cover aspect-square"
             width={140}
             height={140}
             priority={priority}
-            alt={`카드 이미지: ${title}`}
+            quality={60}
+            fetchPriority={priority ? 'high' : 'low'}
           />
         </div>
         <h3 className="mt-4 mb-2 px-3 line-clamp-1">{title}</h3>
         <div className="min-h-[30px]">
-          <p className="text-[13px] font-light line-clamp-2 px-5">{preview}</p>
+          <p className="text-[13px] font-normal line-clamp-2 px-5">{preview}</p>
         </div>
       </div>
 
