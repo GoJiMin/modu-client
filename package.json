@@ -6,7 +6,11 @@
     "dev": "next dev -H dev.modu-review.com -p 3000 --experimental-https",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --watchAll --coverage",
+    "test:ci": "jest --ci --watchAll=false --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -49,6 +53,11 @@
     "@eslint/eslintrc": "^3",
     "@next/eslint-plugin-next": "^15.1.7",
     "@tailwindcss/typography": "^0.5.16",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -57,9 +66,13 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "postcss": "^8",
     "prettier": "^3.5.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5",
+    "whatwg-fetch": "^3.6.20"
   }
 }

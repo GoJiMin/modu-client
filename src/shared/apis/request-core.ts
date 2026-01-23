@@ -1,10 +1,8 @@
-import isBrowser from '../lib/utils/isBrowser';
 import {RequestError, RequestGetError} from './request-error';
 import {
   CreateErrorProps,
   CreateRequestInitProps,
   RequestInitWithMethod,
-  RequestMethodProps,
   RequestProps,
   TErrorInfo,
   WithErrorHandling,
@@ -15,7 +13,12 @@ import {
  * @param {CreateRequestInitProps} props - RequestInit 객체를 생성하는 데 필요한 프로퍼티 객체 (body, method, headers)
  * @returns {RequestInitWithMethod} - RequestInit 객체를 반환
  */
-function createRequestInit({method, body, headers, cacheOptions}: CreateRequestInitProps): RequestInitWithMethod {
+export function createRequestInit({
+  method,
+  body,
+  headers,
+  cacheOptions,
+}: CreateRequestInitProps): RequestInitWithMethod {
   const requestInit: RequestInitWithMethod = {
     credentials: 'include',
     method,
@@ -41,7 +44,7 @@ function createRequestInit({method, body, headers, cacheOptions}: CreateRequestI
  * @param {RequestProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, method, headers, body, queryParams)
  * @returns {Object} - URL과 RequestInit 객체를 반환
  */
-function prepareRequest({
+export function prepareRequest({
   baseUrl = process.env.NEXT_PUBLIC_API_URL,
   endpoint,
   method,
@@ -73,13 +76,27 @@ function prepareRequest({
  * @param {WithErrorHandling<CreateErrorProps>} props - API 요청 중 발생한 에러를 처리하는 데 필요한 프로퍼티 객체 (response, body, requestInit, errorHandlingType)
  * @returns {Promise<RequestError | RequestGetError>} - API 요청 중 발생한 에러 객체를 반환하는 Promise 객체
  */
-async function handleRequestError({
+export async function handleRequestError({
   response,
   body,
   requestInit,
   errorHandlingType,
 }: WithErrorHandling<CreateErrorProps>): Promise<RequestError | RequestGetError> {
-  const {title, detail, status}: TErrorInfo = await response.json();
+  const defaultErrorInfo: TErrorInfo = {
+    title: 'UNKNOWN_ERROR',
+    detail: '알 수 없는 에러가 발생했어요.',
+    status: response.status,
+  };
+
+  let parsedErrorInfo: Partial<TErrorInfo> = {};
+
+  try {
+    parsedErrorInfo = await response.json();
+  } catch {
+    // 실패 시 defaultErrorInfo 사용
+  }
+
+  const {title, detail, status} = {...defaultErrorInfo, ...parsedErrorInfo};
 
   if (requestInit.method === 'GET') {
     return new RequestGetError({
@@ -108,7 +125,7 @@ async function handleRequestError({
  * @param {RequestProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, method, headers, body, queryParams)
  * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
  */
-async function request<T>(props: WithErrorHandling<RequestProps>): Promise<T> {
+export async function request<T>(props: WithErrorHandling<RequestProps>): Promise<T> {
   const {url, requestInit} = prepareRequest(props);
 
   let response: Response = await fetch(url, requestInit);
@@ -123,14 +140,14 @@ async function request<T>(props: WithErrorHandling<RequestProps>): Promise<T> {
     if (refreshResponse.ok) {
       response = await fetch(url, requestInit);
     } else {
-      if (isBrowser()) {
+      if (typeof window !== 'undefined') {
         throw new RequestError({
           name: 'TOKEN_EXPIRED',
           message: '로그인 세션이 만료되었습니다.',
           status: 401,
           endpoint: url,
           method: requestInit.method,
-          requestBody: requestInit.body ? JSON.stringify(requestInit.body) : null,
+          requestBody: requestInit.body ?? null,
         });
       }
     }
@@ -139,7 +156,7 @@ async function request<T>(props: WithErrorHandling<RequestProps>): Promise<T> {
   if (!response.ok) {
     throw await handleRequestError({
       response,
-      body: requestInit.body ? JSON.stringify(requestInit.body) : null,
+      body: requestInit.body ?? null,
       requestInit,
       errorHandlingType: props.errorHandlingType,
     });
@@ -150,96 +167,4 @@ async function request<T>(props: WithErrorHandling<RequestProps>): Promise<T> {
   }
 
   return undefined as T;
-}
-
-/**
- * @description GET 메서드로 API 요청을 보내는 함수
- * @param {RequestMethodProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, headers, errorHandlingType)
- * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
- */
-export async function requestGet<T>({
-  headers = {},
-  errorHandlingType = 'errorBoundary',
-  withResponse = true,
-  ...args
-}: WithErrorHandling<RequestMethodProps>): Promise<T> {
-  return request<T>({
-    ...args,
-    method: 'GET',
-    headers,
-    withResponse,
-    errorHandlingType,
-  });
-}
-
-/**
- * @description POST 메서드로 API 요청을 보내는 함수
- * @param {RequestMethodProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, headers, body)
- * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
- */
-export async function requestPost<T = void>({
-  headers = {},
-  withResponse = false,
-  ...args
-}: RequestMethodProps): Promise<T> {
-  return request<T>({
-    ...args,
-    method: 'POST',
-    headers,
-    withResponse,
-  });
-}
-
-/**
- * @description PUT 메서드로 API 요청을 보내는 함수
- * @param {RequestMethodProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, headers, body)
- * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
- */
-export async function requestPut<T = void>({
-  headers = {},
-  withResponse = false,
-  ...args
-}: RequestMethodProps): Promise<T> {
-  return request<T>({
-    ...args,
-    method: 'PUT',
-    headers,
-    withResponse,
-  });
-}
-
-/**
- * @description DELETE 메서드로 API 요청을 보내는 함수
- * @param {RequestMethodProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, headers)
- * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
- */
-export async function requestDelete<T = void>({
-  headers = {},
-  withResponse = false,
-  ...args
-}: RequestMethodProps): Promise<T> {
-  return request<T>({
-    ...args,
-    method: 'DELETE',
-    headers,
-    withResponse,
-  });
-}
-
-/**
- * @description PATCH 메서드로 API 요청을 보내는 함수
- * @param {RequestMethodProps} props - API 요청을 위한 프로퍼티 객체 (baseUrl, endpoint, headers, body)
- * @returns {Promise<T>} - API 응답을 반환하는 Promise 객체
- */
-export async function requestPatch<T = void>({
-  headers = {},
-  withResponse = false,
-  ...args
-}: RequestMethodProps): Promise<T> {
-  return request<T>({
-    ...args,
-    method: 'PATCH',
-    headers,
-    withResponse,
-  });
 }

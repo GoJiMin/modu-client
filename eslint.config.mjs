@@ -26,6 +26,16 @@ const eslintConfig = [
         },
       ],
     },
+    overrides: [
+      {
+        files: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+        rules: {
+          'react/display-name': 'off',
+          'no-console': 'off',
+          '@typescript-eslint/no-explicit-any': 'off',
+        },
+      },
+    ],
   }),
 ];
 
