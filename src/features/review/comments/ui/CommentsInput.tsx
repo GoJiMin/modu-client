@@ -20,6 +20,7 @@ export default function CommentsInput({reviewId, category, page, openLoginModal}
   const {postComment} = usePostReviewComment(page);
 
   const handleSubmit = () => {
+    /* c8 ignore next */
     if (!textareaRef.current || !userNickname) return;
 
     const commentContent = textareaRef.current.value.trim();

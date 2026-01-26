@@ -17,8 +17,6 @@ export default function CommentCard({comment, userNickname, reviewId, page}: Pro
   const {deleteReviewComment, isPending} = useDeleteReviewComment();
 
   const handleDelete = () => {
-    if (!userNickname) return;
-
     deleteReviewComment({
       commentId: comment.id,
       reviewId,

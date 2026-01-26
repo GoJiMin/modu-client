@@ -43,7 +43,6 @@ export default function useFileUpload(options: UploadOptions) {
         return {
           ...prev,
           status: 'success',
-          url,
           progress: 100,
         };
       });

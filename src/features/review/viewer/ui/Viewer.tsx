@@ -33,7 +33,9 @@ export default function Viewer({
       return <Avatar src={profile_image} alt={`${author_nickname} 프로필 이미지`} rounded="rounded-full" />;
     }
 
-    return <div className="min-w-10 h-10 md:min-w-11 md:h-11 bg-boldBlue rounded-full" />;
+    return (
+      <div aria-label="기본 프로필 이미지" className="min-w-10 h-10 md:min-w-11 md:h-11 bg-boldBlue rounded-full" />
+    );
   };
 
   return (

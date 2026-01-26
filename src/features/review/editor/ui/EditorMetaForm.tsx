@@ -26,7 +26,12 @@ export default function EditorMetaForm({onSubmit, initialTitle, initialCategory}
 
   return (
     <Form {...form}>
-      <form className="flex flex-col px-2 gap-1" id="editor-meta-form" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="flex flex-col px-2 gap-1"
+        id="editor-meta-form"
+        aria-label="meta-data-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         <FormField
           control={form.control}
           name="category"

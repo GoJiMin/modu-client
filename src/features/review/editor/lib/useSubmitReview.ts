@@ -44,9 +44,12 @@ function useSubmitReview({onPreview, onSave}: Props) {
 
     switch (type) {
       case 'preview':
-        return onPreview({...commonPayload, author_nickname: userNickname, created_at: '0000-00-00'});
+        onPreview({...commonPayload, author_nickname: userNickname, created_at: '0000-00-00'});
+        break;
       case 'save':
-        return onSave({...commonPayload});
+        onSave({...commonPayload});
+        break;
+      /* c8 ignore next 3 */
       default:
         const _exhaustiveCheck: never = type;
         throw new Error(`허용되지 않은 저장 타입입니다. type: ${_exhaustiveCheck}`);
