@@ -4,9 +4,11 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {login} from '../apis/api-service';
 import {authQueryKeys} from './query-service';
 import {REDIRECT_STORAGE_KEY} from '../consts/authConstants';
+import {useRouter} from 'next/navigation';
 
 export function useLogin() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const {mutate, ...rest} = useMutation({
     mutationFn: (email: string) => login(email),
@@ -19,9 +21,9 @@ export function useLogin() {
       sessionStorage.removeItem(REDIRECT_STORAGE_KEY);
 
       if (previousPath) {
-        window.location.replace(previousPath);
+        router.replace(previousPath);
       } else {
-        window.location.replace('/');
+        router.replace('/');
       }
     },
   });

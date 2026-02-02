@@ -57,6 +57,7 @@ export default function ChangeProfileImageSelector({onSelectFile}: Props) {
       />
       <label
         htmlFor="profile-image"
+        aria-label="이미지 업로드"
         className="w-full h-full flex flex-col items-center justify-center select-none cursor-pointer py-6"
       >
         <LucideIcon name="FileImage" className="w-12 h-12 md:w-14 md:h-14 mb-2 text-gray-600" />

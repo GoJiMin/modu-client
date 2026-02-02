@@ -53,7 +53,7 @@ export default function ReviewsWithScroll({selectedCategory, sort}: Props) {
         )}
       </ul>
       {hasNextPage ? (
-        <div className="w-full mt-6" ref={observerRef}>
+        <div className="w-full mt-6" ref={observerRef} data-testid="observer">
           {isFetchingNextPage && Array.from({length: 3}, (_, idx) => <ReviewArticleLoading key={idx} />)}
         </div>
       ) : (

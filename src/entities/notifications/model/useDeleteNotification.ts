@@ -34,9 +34,9 @@ export function useDeleteNotification() {
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: notificationsKeys.all});
     },
-    onError: (_, {}, context) => {
+    onError: (_, {page}, context) => {
       if (context) {
-        queryClient.setQueryData(notificationsKeys.all, context.previousNotifications);
+        queryClient.setQueryData(notificationsKeys.page(page), context.previousNotifications);
       }
     },
   });

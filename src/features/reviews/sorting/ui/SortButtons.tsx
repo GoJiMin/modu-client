@@ -10,7 +10,7 @@ type Props = {
 
 export default function SortButtons({sort, onValueChange, className}: Props) {
   return (
-    <div className={cn('flex gap-4', className)}>
+    <div className={cn('flex gap-4', className)} role="group" aria-label="정렬 방식 선택">
       {SORT_OPTIONS.map(({name, value}) => {
         const isActive = sort === value;
         return (

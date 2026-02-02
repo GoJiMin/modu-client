@@ -3,6 +3,7 @@ import {Category, Comment, ReviewComments} from '@/entities/review';
 export const TEST_REVIEW_ID = 123;
 export const TEST_USER_NICKNAME = 'testUser';
 export const TEST_CATEGORY: Category = 'food';
+export const TEST_PAGE = 1;
 
 export const commentStub: Comment = {
   id: 1,

@@ -32,10 +32,10 @@ export default function MyReviewCard({card, isAuthor, context, priority}: Props)
       )}
       {isAuthor && (
         <div className="absolute w-full px-6 flex justify-between text-gray-500 transition-colors mt-[0.2rem]">
-          <Link className="hover:text-gray-800" href={`/reviews/${card.board_id}/edit`} aria-label="리뷰 수정">
+          <Link className="hover:text-gray-800" href={`/reviews/${card.board_id}/edit`} aria-label={`${card.title} 리뷰 수정`}>
             <LucideIcon name="PencilLine" size={20} />
           </Link>
-          <ConfirmDeleteTrigger onConfirm={handleDelete} isPending={isPending} label="리뷰 삭제">
+          <ConfirmDeleteTrigger onConfirm={handleDelete} isPending={isPending} label={`${card.title} 리뷰 삭제`}>
             {props => (
               <button {...props} className="hover:text-gray-800">
                 <LucideIcon name="X" size={20} />
@@ -44,7 +44,7 @@ export default function MyReviewCard({card, isAuthor, context, priority}: Props)
           </ConfirmDeleteTrigger>
         </div>
       )}{' '}
-      <Link href={`/reviews/${card.board_id}`}>
+      <Link href={`/reviews/${card.board_id}`} aria-label={`${card.title} 리뷰 이동`}>
         <CardDescription card={card} priority={priority} variant="my" />
       </Link>
     </article>

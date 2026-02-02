@@ -26,7 +26,7 @@ export default function NotificationItem({notification}: Props) {
     <button
       className={`w-full text-left flex items-center border-b-2 border-neutral-300 ${notification.isRead ? 'bg-gray-200' : 'bg-white'} py-5 px-3 md:px-5 pb-8 md:pb-6 hover:bg-gray-100 transition-colors`}
       onClick={handleMarkAsRead}
-      aria-label={`${config.title} - ${config.getMessage(title)} 게시글로 이동`}
+      aria-label={`${notification.title} 게시글로 이동`}
     >
       <div className={`${config.bgColor} p-2 md:p-2 rounded-lg mr-3 md:mr-3`}>
         <LucideIcon name={config.icon} className="w-4 h-4 md:w-5 md:h-5 text-white" />

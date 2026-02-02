@@ -71,7 +71,7 @@ export default function UserPostsList({userNickname}: Props) {
       </ul>
 
       {hasNextPage ? (
-        <div className="w-full mt-6 space-y-6" ref={observerRef}>
+        <div className="w-full mt-6 space-y-6" ref={observerRef} data-testid="observer">
           {isFetchingNextPage && Array.from({length: 3}, (_, idx) => <UserPostLoading key={idx} />)}
         </div>
       ) : (

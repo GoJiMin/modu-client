@@ -11,10 +11,8 @@ const RecentReviewsCarousel = dynamic(() => import('./RecentReviewsCarousel'), {
 
 export default function RecentReviewsClient() {
   return (
-    <section>
-      <RQProvider LoadingFallback={<RecentReviewsCarouselLoading />}>
-        <RecentReviewsCarousel />
-      </RQProvider>
-    </section>
+    <RQProvider LoadingFallback={<RecentReviewsCarouselLoading />}>
+      <RecentReviewsCarousel />
+    </RQProvider>
   );
 }

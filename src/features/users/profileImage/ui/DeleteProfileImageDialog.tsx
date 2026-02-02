@@ -35,6 +35,7 @@ export default function DeleteProfileImageDialog({userNickname}: Props) {
   return (
     <Dialog>
       <DialogTrigger
+        aria-label="프로필 이미지 삭제"
         disabled={isDefaultImage}
         className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl hover:bg-gray-100 transition-colors"
       >
@@ -50,7 +51,7 @@ export default function DeleteProfileImageDialog({userNickname}: Props) {
           <DialogClose asChild>
             <button
               className="w-full py-1.5 bg-gray-300 text-black rounded-md hover:bg-gray-300/80 transition-colors"
-              aria-label="프로필 이미지 삭제 취소"
+              aria-label="삭제 취소"
             >
               취소
             </button>
@@ -58,7 +59,7 @@ export default function DeleteProfileImageDialog({userNickname}: Props) {
           <PopoverClose asChild>
             <button
               className="w-full text-center py-1.5 bg-boldBlue text-white rounded-md hover:bg-boldBlue/80 transition-colors"
-              aria-label="프로필 이미지 삭제"
+              aria-label="삭제 확인"
               onClick={handleDelete}
             >
               삭제

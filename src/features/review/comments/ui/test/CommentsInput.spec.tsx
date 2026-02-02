@@ -2,178 +2,150 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CommentsInput from '../CommentsInput';
 import {useUserNickname} from '@/entities/auth';
-import {usePostReviewComment} from '@/entities/review';
-import {TEST_REVIEW_ID, TEST_CATEGORY, TEST_USER_NICKNAME} from './stub';
+import {postReviewComment} from '@/entities/review/apis/api-service';
+import {withAllContext} from '@/shared/lib/utils/withAllContext';
 
 jest.mock('@/entities/auth');
-jest.mock('@/entities/review');
+jest.mock('@/entities/review/apis/api-service');
+jest.mock('next/navigation', () => jest.requireActual('next-router-mock/navigation'));
 
+const mockPostReviewComment = postReviewComment as jest.MockedFunction<typeof postReviewComment>;
 const mockUseUserNickname = useUserNickname as jest.MockedFunction<typeof useUserNickname>;
-const mockUsePostReviewComment = usePostReviewComment as jest.MockedFunction<typeof usePostReviewComment>;
-const mockPostComment = jest.fn();
-const mockOpenLoginModal = jest.fn();
 
-describe('src/features/review/comments/ui/CommentsInput.tsx', () => {
-  const defaultProps = {
-    reviewId: TEST_REVIEW_ID,
-    category: TEST_CATEGORY,
-    page: 1,
-    openLoginModal: mockOpenLoginModal,
-  };
-
+describe('src/features/review/components/ui/CommentsInput.tsx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUsePostReviewComment.mockReturnValue({
-      postComment: mockPostComment,
-    } as unknown as ReturnType<typeof usePostReviewComment>);
   });
 
-  describe('렌더링', () => {
-    it('컴포넌트가 렌더링된다.', () => {
-      mockUseUserNickname.mockReturnValue(TEST_USER_NICKNAME);
+  describe('렌더링 테스트', () => {
+    const stubProps = {
+      reviewId: 5,
+      category: 'food' as const,
+      page: 5,
+      openLoginModal: () => {},
+    };
 
-      render(<CommentsInput {...defaultProps} />);
+    it('로그인 사용자의 댓글 입력창이 렌더링된다.', async () => {
+      mockUseUserNickname.mockReturnValue('jimin');
 
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
-      expect(screen.getByRole('button', {name: '댓글 등록'})).toBeInTheDocument();
+      render(withAllContext(<CommentsInput {...stubProps} />));
+
+      expect(screen.getByPlaceholderText('댓글을 입력해주세요.')).toBeInTheDocument();
+      expect(screen.getByLabelText('댓글 등록', {selector: 'button'})).toBeInTheDocument();
+    });
+
+    it('로그인하지 않은 사용자의 댓글 입력창이 렌더링된다.', async () => {
+      mockUseUserNickname.mockReturnValue(null);
+
+      render(withAllContext(<CommentsInput {...stubProps} />));
+
+      const textArea = screen.getByPlaceholderText('로그인 후 댓글을 작성할 수 있어요.');
+      const button = screen.getByLabelText('로그인 후 댓글을 등록할 수 있어요.', {selector: 'button'});
+
+      expect(textArea).toBeInTheDocument();
+      expect(textArea).toHaveAttribute('readOnly');
+
+      expect(button).toBeInTheDocument();
+      expect(button).toBeDisabled();
     });
   });
 
-  describe('로그인 상태', () => {
-    describe('로그인한 경우', () => {
-      beforeEach(() => {
-        mockUseUserNickname.mockReturnValue(TEST_USER_NICKNAME);
-      });
+  describe('기능 테스트', () => {
+    const stubProps = {
+      reviewId: 5,
+      category: 'food' as const,
+      page: 1,
+      openLoginModal: () => {},
+    };
 
-      it('textarea가 편집 가능하다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        expect(textarea).not.toHaveAttribute('readonly');
-      });
-
-      it('placeholder에 "댓글을 입력해주세요."가 표시된다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        expect(textarea).toHaveAttribute('placeholder', '댓글을 입력해주세요.');
-      });
-
-      it('등록 버튼이 활성화된다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const button = screen.getByRole('button', {name: '댓글 등록'});
-        expect(button).toBeEnabled();
-      });
-
-      it('textarea 클릭 시 openLoginModal이 호출되지 않는다.', async () => {
-        const user = userEvent.setup();
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        await user.click(textarea);
-
-        expect(mockOpenLoginModal).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('로그인하지 않은 경우', () => {
-      beforeEach(() => {
-        mockUseUserNickname.mockReturnValue(null);
-      });
-
-      it('textarea가 readOnly이다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        expect(textarea).toHaveAttribute('readonly');
-      });
-
-      it('placeholder에 "로그인 후 댓글을 작성할 수 있어요."가 표시된다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        expect(textarea).toHaveAttribute('placeholder', '로그인 후 댓글을 작성할 수 있어요.');
-      });
-
-      it('등록 버튼이 비활성화된다.', () => {
-        render(<CommentsInput {...defaultProps} />);
-
-        const button = screen.getByRole('button', {name: '로그인 후 댓글을 등록할 수 있어요.'});
-        expect(button).toBeDisabled();
-      });
-
-      it('textarea 클릭 시 openLoginModal이 호출된다.', async () => {
-        const user = userEvent.setup();
-        render(<CommentsInput {...defaultProps} />);
-
-        const textarea = screen.getByRole('textbox');
-        await user.click(textarea);
-
-        expect(mockOpenLoginModal).toHaveBeenCalledTimes(1);
-      });
-    });
-  });
-
-  describe('댓글 등록', () => {
     beforeEach(() => {
-      mockUseUserNickname.mockReturnValue(TEST_USER_NICKNAME);
+      mockUseUserNickname.mockReturnValue('jimin');
     });
 
-    it('내용을 입력하고 등록 버튼을 클릭하면 postComment가 호출된다.', async () => {
+    it('댓글 등록 후 입력창이 초기화된다.', async () => {
       const user = userEvent.setup();
-      render(<CommentsInput {...defaultProps} />);
 
-      const textarea = screen.getByRole('textbox');
-      const button = screen.getByRole('button', {name: '댓글 등록'});
+      render(withAllContext(<CommentsInput {...stubProps} />));
 
-      await user.type(textarea, '테스트 댓글입니다.');
+      const textArea = screen.getByPlaceholderText('댓글을 입력해주세요.');
+      const button = screen.getByLabelText('댓글 등록', {selector: 'button'});
+
+      await user.type(textArea, '테스트 입력');
+      expect(textArea).toHaveDisplayValue('테스트 입력');
+
+      await user.click(button);
+      expect(textArea).toHaveDisplayValue('');
+    });
+
+    it('댓글 등록 시 공백을 제거한다.', async () => {
+      const user = userEvent.setup();
+
+      render(withAllContext(<CommentsInput {...stubProps} />));
+
+      const textArea = screen.getByPlaceholderText('댓글을 입력해주세요.');
+      const button = screen.getByLabelText('댓글 등록', {selector: 'button'});
+
+      await user.type(textArea, '          테스트 입력                 ');
       await user.click(button);
 
-      expect(mockPostComment).toHaveBeenCalledTimes(1);
-      expect(mockPostComment).toHaveBeenCalledWith({
-        userNickname: TEST_USER_NICKNAME,
-        reviewId: TEST_REVIEW_ID,
-        category: TEST_CATEGORY,
-        content: '테스트 댓글입니다.',
+      expect(postReviewComment).toHaveBeenCalledTimes(1);
+      expect(postReviewComment).toHaveBeenCalledWith({
+        reviewId: stubProps.reviewId,
+        category: stubProps.category,
+        content: '테스트 입력',
       });
     });
+  });
 
-    it('댓글 등록 후 textarea가 초기화된다.', async () => {
+  describe('엣지 테스트', () => {
+    const stubProps = {
+      reviewId: 5,
+      category: 'food' as const,
+      page: 5,
+      openLoginModal: jest.fn(),
+    };
+    it('로그인하지 않은 사용자가 입력창을 클릭하면 모달을 표시한다.', async () => {
+      mockUseUserNickname.mockReturnValue(null);
+
       const user = userEvent.setup();
-      render(<CommentsInput {...defaultProps} />);
 
-      const textarea = screen.getByRole('textbox');
-      const button = screen.getByRole('button', {name: '댓글 등록'});
+      render(withAllContext(<CommentsInput {...stubProps} />));
 
-      await user.type(textarea, '테스트 댓글입니다.');
-      await user.click(button);
+      const textArea = screen.getByPlaceholderText('로그인 후 댓글을 작성할 수 있어요.');
+      await user.click(textArea);
 
-      expect(textarea).toHaveValue('');
+      expect(stubProps.openLoginModal).toHaveBeenCalledTimes(1);
+      expect(mockPostReviewComment).toHaveBeenCalledTimes(0);
     });
 
-    it('빈 문자열일 때 등록 버튼을 클릭하면 postComment가 호출되지 않는다.', async () => {
-      const user = userEvent.setup();
-      render(<CommentsInput {...defaultProps} />);
+    // 버튼 요소가 textArea에 묻혀 실제로 동작하진 않음
+    it('로그인하지 않은 사용자가 버튼을 클릭하면 요청하지 않는다.', async () => {
+      mockUseUserNickname.mockReturnValue(null);
 
-      const button = screen.getByRole('button', {name: '댓글 등록'});
+      const user = userEvent.setup();
+
+      render(withAllContext(<CommentsInput {...stubProps} />));
+
+      const button = screen.getByLabelText('로그인 후 댓글을 등록할 수 있어요.', {selector: 'button'});
       await user.click(button);
 
-      expect(mockPostComment).not.toHaveBeenCalled();
+      expect(mockPostReviewComment).toHaveBeenCalledTimes(0);
     });
 
-    it('공백만 있을 때 등록 버튼을 클릭하면 postComment가 호출되지 않는다.', async () => {
+    it('공백을 포함해 입력값이 없을 경우 요청하지 않는다.', async () => {
+      mockUseUserNickname.mockReturnValue('jimin');
+
       const user = userEvent.setup();
-      render(<CommentsInput {...defaultProps} />);
 
-      const textarea = screen.getByRole('textbox');
-      const button = screen.getByRole('button', {name: '댓글 등록'});
+      render(withAllContext(<CommentsInput {...stubProps} />));
 
-      await user.type(textarea, '   ');
+      const textArea = screen.getByPlaceholderText('댓글을 입력해주세요.');
+      const button = screen.getByLabelText('댓글 등록', {selector: 'button'});
+
+      await user.type(textArea, '      ');
       await user.click(button);
 
-      expect(mockPostComment).not.toHaveBeenCalled();
+      expect(mockPostReviewComment).toHaveBeenCalledTimes(0);
     });
   });
 });

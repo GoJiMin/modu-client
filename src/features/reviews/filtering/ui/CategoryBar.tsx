@@ -17,8 +17,8 @@ export default function CategoryBar({selectedCategory, onSelectCategory}: Props)
               className="w-[90px] md:w-full"
               variant={selectedCategory === value ? 'activeCategory' : 'inActiveCategory'}
               size="category"
-              aria-pressed={selectedCategory === value}
               aria-label={`카테고리: ${label}`}
+              aria-selected={selectedCategory === value}
               onClick={() => onSelectCategory(value)}
             >
               {label}
