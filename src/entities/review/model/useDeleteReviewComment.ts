@@ -1,8 +1,8 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {ReviewComments} from './type';
 import {deleteReviewComment} from '../apis/api-service';
-import toast from '@/shared/lib/utils/toastService';
 import {reviewQueryKeys} from './query-service';
+import toast from '@/shared/ui/toast';
 
 type MutationVariables = {
   commentId: number;

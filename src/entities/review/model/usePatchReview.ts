@@ -4,7 +4,7 @@ import {useRouter} from 'next/navigation';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {patchReview} from '../apis/api-service';
 import {ReviewPayload} from './type';
-import toast from '@/shared/lib/utils/toastService';
+import toast from '@/shared/ui/toast';
 import {reviewsQueryKeys} from '@/entities/reviews';
 
 type MutationVariables = {

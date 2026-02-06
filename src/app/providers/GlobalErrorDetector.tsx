@@ -5,10 +5,10 @@ import {useRouter} from 'next/navigation';
 import {useGlobalError} from '@/entities/error';
 import isPredictableServerError from '@/shared/lib/utils/isPredictableServerError';
 import isClientError from '@/shared/lib/utils/isClientError';
-import toast from '@/shared/lib/utils/toastService';
 import {ERROR_MESSAGE, SERVER_ERROR_MESSAGE} from '@/shared/lib/consts/errorMessage';
 import {reportError} from '@/shared/lib/utils/reportError';
 import {useErrorBoundary} from 'react-error-boundary';
+import toast from '@/shared/ui/toast';
 
 type Props = {
   children: React.ReactNode;

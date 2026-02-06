@@ -8,9 +8,13 @@ import {LucideIcon} from '@/shared/ui/icons';
 
 export default function OAuth2RedirectPage() {
   const searchParams = useSearchParams();
-  const {login} = useLogin();
+  const {login, isSuccess} = useLogin();
 
   useEffect(() => {
+    if (isSuccess) {
+      return;
+    }
+
     const email = searchParams.get('user_email');
 
     if (!email) {
@@ -18,7 +22,7 @@ export default function OAuth2RedirectPage() {
     }
 
     login(email);
-  }, [searchParams, login]);
+  }, [searchParams, login, isSuccess]);
 
   return (
     <section className="w-full h-full flex flex-col justify-center items-center">

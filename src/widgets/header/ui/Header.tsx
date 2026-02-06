@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
     <header
-      className={`flex justify-between items-center py-5 px-5 md:px-8 lg:py-6 lg:px-10 ${isMainPage || ' border-b border-gray-200'}`}
+      className={`flex justify-between items-center py-5 px-5 md:px-8 lg:py-6 lg:px-10 ${isMainPage ? '' : 'border-b border-gray-200'}`}
     >
       <Link href="/">
         <h2 className="text-2xl md:text-3xl font-extrabold whitespace-nowrap text-boldBlue">모두의 : 후기</h2>

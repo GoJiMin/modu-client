@@ -15,6 +15,7 @@ export const SERVER_ERROR_MESSAGE: ErrorMessage = {
   UNAUTHORIZED: '로그인이 필요한 서비스에요. 다시 로그인해주세요.',
   USER_NOT_FOUND: '존재하지 않는 사용자입니다. 다시 로그인해주세요.',
   INTERNAL_SERVER_ERROR: '서버에서 알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해주세요.',
+  TOKEN_EXPIRED: '로그인 세션이 만료되었어요. 다시 로그인해주세요.',
 
   // 로그아웃 에러 GET /users/logout
 

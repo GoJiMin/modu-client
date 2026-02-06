@@ -83,10 +83,10 @@ export default function ContactForm() {
               type="submit"
               className="bg-boldBlue !mt-8 md:!mt-20 text-white font-extrabold py-6 rounded-xl hover:bg-gray-700 transition"
               disabled={isPending}
-              aria-label={isPending ? '전송 중 ...' : '문의하기 버튼'}
+              aria-label={isPending ? '전송 중 ...' : '전송'}
               aria-disabled={isPending}
             >
-              {isPending ? '전송 중 . . .' : '전송'}
+              {isPending ? '전송 중 ...' : '전송'}
             </Button>
           </motion.form>
         </Form>

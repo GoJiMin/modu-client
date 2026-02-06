@@ -4,7 +4,7 @@ import {useRouter} from 'next/navigation';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {postReview} from '../apis/api-service';
 import {reviewsQueryKeys} from '@/entities/reviews';
-import toast from '@/shared/lib/utils/toastService';
+import toast from '@/shared/ui/toast';
 
 export function usePostReview() {
   const queryClient = useQueryClient();

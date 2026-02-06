@@ -10,17 +10,6 @@ describe('src/shared/ui/modal/ui/Modal.tsx', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    const modalRoot = document.createElement('div');
-    modalRoot.id = 'modal-root';
-    document.body.appendChild(modalRoot);
-  });
-
-  afterEach(() => {
-    const modalRoot = document.getElementById('modal-root');
-    if (modalRoot) {
-      document.body.removeChild(modalRoot);
-    }
   });
 
   const renderModal = (children?: React.ReactNode) => {
@@ -81,7 +70,7 @@ describe('src/shared/ui/modal/ui/Modal.tsx', () => {
     it('모달 콘텐츠 클릭 시 모달 닫기 콜백이 호출되지 않는다', () => {
       renderModal(<div>테스트 콘텐츠</div>);
 
-      const content = screen.getByText("테스트 콘텐츠")
+      const content = screen.getByText('테스트 콘텐츠');
       fireEvent.click(content);
 
       expect(mockOnClose).not.toHaveBeenCalled();

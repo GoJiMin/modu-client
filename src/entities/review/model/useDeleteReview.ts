@@ -4,8 +4,8 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {useRouter} from 'next/navigation';
 import {deleteReview} from '../apis/api-service';
 import {Category} from './type';
-import toast from '@/shared/lib/utils/toastService';
 import {reviewsQueryKeys} from '@/entities/reviews';
+import toast from '@/shared/ui/toast';
 
 type MutationVariables = {
   category: Category;

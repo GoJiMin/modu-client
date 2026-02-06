@@ -1,34 +1,25 @@
 import {HTMLAttributes} from 'react';
 import Image from 'next/image';
-import {cva, VariantProps} from 'class-variance-authority';
 import {useGetProfileImageByUserNickname} from '@/entities/users';
 import {cn} from '@/shared/lib/utils/cn';
 
-const profileImageVariant = cva(
-  'flex justify-center items-center rounded-full border-boldBlue border-[7px] overflow-hidden',
-  {
-    variants: {
-      page: {
-        my: 'w-36 h-36 md:w-40 md:h-40 lg:w-48 lg:h-48',
-        postsByUser: 'w-36 h-36 md:w-40 md:h-40 lg:w-48 lg:h-48',
-      },
-    },
-  },
-);
-
 type Props = {
   userNickname: string;
-} & HTMLAttributes<HTMLDivElement> &
-  VariantProps<typeof profileImageVariant>;
+} & HTMLAttributes<HTMLDivElement>;
 
-export default function ProfileImage({userNickname, className, page}: Props) {
+export default function ProfileImage({userNickname, className}: Props) {
   const {data} = useGetProfileImageByUserNickname(userNickname);
 
   return (
-    <div className={cn(className, profileImageVariant({page}))}>
+    <div
+      className={cn(
+        className,
+        'flex justify-center items-center rounded-full border-boldBlue border-[7px] overflow-hidden w-36 h-36 md:w-40 md:h-40 lg:w-48 lg:h-48',
+      )}
+    >
       <Image
         src={data.profileImage}
-        alt="프로필 이미지"
+        alt={`${userNickname} 프로필 이미지`}
         width={160}
         height={160}
         className="w-full h-full object-cover"

@@ -2,7 +2,7 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {deleteReview} from '../apis/api-service';
 import {Category} from './type';
 import {reviewsQueryKeys} from '@/entities/reviews';
-import toast from '@/shared/lib/utils/toastService';
+import toast from '@/shared/ui/toast';
 
 type MutationVariables = {
   category: Category;

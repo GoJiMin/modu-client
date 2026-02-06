@@ -71,10 +71,6 @@ describe('src/features/reviews/my/ui/MyReviewCard.tsx', () => {
         });
       });
 
-      const modalRoot = document.createElement('div');
-      modalRoot.id = 'modal-root';
-      document.body.appendChild(modalRoot);
-
       render(withAllContext(<MyReviewCard card={cardStub} context="my" isAuthor priority />));
 
       const deleteButton = screen.getByRole('button', {name: `${cardStub.title} 리뷰 삭제`});
@@ -92,8 +88,6 @@ describe('src/features/reviews/my/ui/MyReviewCard.tsx', () => {
 
       expect(screen.getByText('리뷰를 삭제하고 있어요.'));
       resolveMockDeleteReview();
-
-      document.body.removeChild(modalRoot);
     });
   });
 });

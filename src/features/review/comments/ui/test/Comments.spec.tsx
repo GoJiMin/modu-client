@@ -128,20 +128,6 @@ describe('src/features/review/comments/ui/Comments.tsx', () => {
     });
 
     describe('댓글 삭제', () => {
-      beforeEach(() => {
-        // 삭제 버튼 클릭 후 모달 오픈을 위해 포탈 생성
-        const modalRoot = document.createElement('div');
-        modalRoot.id = 'modal-root';
-        document.body.appendChild(modalRoot);
-      });
-
-      afterEach(() => {
-        const modalRoot = document.getElementById('modal-root');
-        if (modalRoot) {
-          document.body.removeChild(modalRoot);
-        }
-      });
-
       it('사용자가 작성한 댓글을 포함한 3개의 리스트에서 댓글을 삭제하면 즉시 2개의 댓글이 표시된다.', async () => {
         const user = userEvent.setup();
         // 제거된 이후의 댓글 리스트
@@ -209,11 +195,6 @@ describe('src/features/review/comments/ui/Comments.tsx', () => {
         });
         // 요청 실패를 간주해 3개의 댓글 리스트만 반환
         mockGetReviewComments.mockResolvedValue(reviewCommentsStub);
-
-        // 삭제 버튼 클릭 후 모달 오픈을 위해 포탈 생성
-        const modalRoot = document.createElement('div');
-        modalRoot.id = 'modal-root';
-        document.body.appendChild(modalRoot);
 
         render(
           withAllContext(

@@ -52,7 +52,8 @@ export default function Sidebar() {
                       ? 'text-boldBlue font-semibold md:font-bold'
                       : 'text-muted-foreground hover:text-boldBlue transition-colors'
                   }
-                  aria-label={`${title} 메뉴로 이동`}
+                  aria-label={`${title}로 이동`}
+                  aria-selected={isActive(pathName)}
                   scroll={scrollToTop}
                 >
                   <span>{title}</span>

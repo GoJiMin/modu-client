@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {Button} from '@/shared/shadcnComponent/ui/button';
 import {LucideIcon} from '@/shared/ui/icons';
+import { LOGIN_URL } from '@/entities/auth';
 
 type Props = {
   error: Error & {digest?: string};
@@ -17,7 +18,7 @@ export default function OAuth2ErrorFallback({error}: Props) {
         <p>문제가 반복된다면 아래 메일로 문의해주세요.</p>
         <p>modureviewclient@gmail.com</p>
       </article>
-      <Link href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorize/kakao`}>
+      <Link href={LOGIN_URL}>
         <Button>다시 로그인하기</Button>
       </Link>
     </section>

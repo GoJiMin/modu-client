@@ -20,7 +20,8 @@ export default function Navbar() {
                 ? 'text-boldBlue font-semibold md:font-extrabold whitespace-nowrap underline decoration-4 decoration-boldBlue underline-offset-8'
                 : 'text-muted-foreground hover:text-boldBlue transition-colors whitespace-nowrap'
             }
-            aria-label={`${title} 메뉴로 이동`}
+            aria-label={`${title}로 이동`}
+            aria-selected={isActive(pathName)}
             scroll={scrollToTop}
           >
             <span className="relative group font-medium">

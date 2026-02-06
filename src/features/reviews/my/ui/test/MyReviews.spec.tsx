@@ -173,10 +173,6 @@ describe('src/features/reviews/my/ui/MyReviews.tsx', () => {
         });
       mockDeleteReview.mockResolvedValue();
 
-      const modalRoot = document.createElement('div');
-      modalRoot.id = 'modal-root';
-      document.body.appendChild(modalRoot);
-
       render(
         withAllContext(
           <Suspense fallback={<div>loading</div>}>
@@ -194,8 +190,6 @@ describe('src/features/reviews/my/ui/MyReviews.tsx', () => {
       await user.click(confirmButton);
 
       await screen.findByText('아직 작성한 후기가 없어요.');
-
-      document.body.removeChild(modalRoot);
     });
   });
 });

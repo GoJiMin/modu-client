@@ -1,1 +1,1 @@
-export {default as EditReviewPage, generateMetadata} from './ui/EditReviewPage';
+export {default as EditReviewPage, metadata} from './ui/EditReviewPage';

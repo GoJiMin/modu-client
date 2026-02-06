@@ -61,7 +61,7 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{review
     );
   }
 
-  revalidateTag(`review-${reviewId}`);
+  revalidateTag(`review-${reviewId}`, 'max');
   return NextResponse.json(
     {
       message: '리뷰가 성공적으로 수정되었습니다.',
@@ -126,7 +126,7 @@ export async function DELETE(_: NextRequest, {params}: {params: Promise<{reviewI
     );
   }
 
-  revalidateTag(`review-${reviewId}`);
+  revalidateTag(`review-${reviewId}`, 'max');
   return NextResponse.json(
     {
       message: '리뷰가 성공적으로 삭제되었습니다.',

@@ -1,15 +1,7 @@
 import Link from 'next/link';
 import {toast as sonnerToast} from 'sonner';
-import {LucideIcon} from '../icons';
-
-type ToastType = 'bookmark' | 'comment';
-
-export type NotificationToastProps = {
-  id: string | number;
-  board_id: number;
-  title: string;
-  type: ToastType;
-};
+import {NotificationToastProps} from '../model/type';
+import {LucideIcon} from '../../icons';
 
 const NOTIFICATION_CONFIG = {
   comment: {

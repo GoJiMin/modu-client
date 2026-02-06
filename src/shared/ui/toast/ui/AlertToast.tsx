@@ -1,19 +1,7 @@
 import {toast as sonnerToast} from 'sonner';
-import {LucideIcon} from '../icons';
 import {cva} from 'class-variance-authority';
-
-type ToastType = 'success' | 'error' | 'info' | 'default';
-
-export type ToastProps = {
-  id: string | number;
-  title: string;
-  description?: string;
-  type?: ToastType;
-  button?: {
-    label: string;
-    onClick: () => void;
-  };
-};
+import {AlertToastProps, AlertToastType} from '../model/type';
+import {LucideIcon} from '../../icons';
 
 const toastContainerVariants = cva(
   'flex rounded-lg shadow-lg ring-1 ring-black/5 w-full md:min-w-[400px] md:max-w-[420px] items-center p-4',
@@ -57,14 +45,14 @@ const toastButtonVariants = cva('rounded-md px-6 py-1 md:px-4 md:py-1.5 text-sm'
   },
 });
 
-const toastTypeIcons: Record<ToastType, React.ReactNode> = {
+const toastTypeIcons: Record<AlertToastType, React.ReactNode> = {
   success: <LucideIcon name="CircleCheck" size={21} color="green" />,
   error: <LucideIcon name="CircleAlert" size={21} color="red" />,
   info: <LucideIcon name="Sparkles" size={21} color="blue" />,
   default: <LucideIcon name="Info" size={21} color="grey" />,
 };
 
-function Toast(props: ToastProps) {
+function AlertToast(props: AlertToastProps) {
   const {title, description, button, id, type = 'default'} = props;
 
   return (
@@ -95,4 +83,4 @@ function Toast(props: ToastProps) {
   );
 }
 
-export default Toast;
+export default AlertToast;

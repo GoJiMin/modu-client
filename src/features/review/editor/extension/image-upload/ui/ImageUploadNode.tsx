@@ -1,4 +1,4 @@
-import {ChangeEvent, useRef} from 'react';
+import {ChangeEvent, useId} from 'react';
 import {NodeViewProps, NodeViewWrapper} from '@tiptap/react';
 import useFileUpload from '../lib/useFileUpload';
 import {UploadOptions} from '../model/type';
@@ -9,7 +9,7 @@ import {ImageUploadDragArea} from '@/shared/ui/components';
 
 function ImageUploadNode(props: NodeViewProps) {
   const {accept, maxSize} = props.node.attrs;
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
   const extension = props.extension;
 
   const uploadOptions: UploadOptions = {
@@ -63,19 +63,12 @@ function ImageUploadNode(props: NodeViewProps) {
     handleUpload(files[0]);
   };
 
-  const handleClick = () => {
-    if (inputRef.current && !fileItem) {
-      inputRef.current.value = '';
-      inputRef.current.click();
-    }
-  };
-
   return (
-    <NodeViewWrapper className="image-upload-box not-prose py-5" tabIndex={0} onClick={handleClick}>
+    <NodeViewWrapper className="image-upload-box not-prose py-0" tabIndex={0}>
       {!fileItem ? (
         <ImageUploadDragArea onFile={handleUpload} onError={uploadOptions.onError}>
-          <ImageUploadDropZone maxSize={maxSize} />
-          <input className="hidden" ref={inputRef} name="file" accept={accept} type="file" onChange={handleChange} />
+          <ImageUploadDropZone maxSize={maxSize} inputId={inputId} />
+          <input className="hidden" id={inputId} name="file" accept={accept} type="file" onChange={handleChange} />
         </ImageUploadDragArea>
       ) : (
         <ImageUploadPreview

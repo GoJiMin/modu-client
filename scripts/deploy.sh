@@ -47,7 +47,7 @@ pnpm install >> $LOG_FILE 2>&1
 echo "" && echo "" >> $LOG_FILE 2>&1
 
 echo "서버를 실행합니다. : $CURRENT_TIME" >> $LOG_FILE
-$PM2_PATH start "node_modules/next/dist/bin/next" --name $NEW_NAME --no-autorestart -- start --port $NEW_PORT >> $LOG_FILE
+$PM2_PATH start pnpm --name $NEW_NAME --no-autorestart -- start --port $NEW_PORT >> $LOG_FILE
 echo "" && echo "" >> $LOG_FILE 2>&1
 
 echo "Health Check를 수행합니다. : $CURRENT_TIME" >> $LOG_FILE

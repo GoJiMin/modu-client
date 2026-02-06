@@ -13,12 +13,12 @@ export default function UserInfo() {
     <section className="flex flex-col items-center mt-10 md:mt-8 lg:mt-10">
       <div className="relative">
         {userNickname ? (
-          <Suspense fallback={<ProfileImageLoading page="my" />}>
-            <ProfileImage userNickname={userNickname} page="my" />
+          <Suspense fallback={<ProfileImageLoading />}>
+            <ProfileImage userNickname={userNickname} />
             <EditProfileImage />
           </Suspense>
         ) : (
-          <ProfileImageLoading page="my" />
+          <ProfileImageLoading  />
         )}
       </div>
       <div className="flex flex-col items-center mt-3">

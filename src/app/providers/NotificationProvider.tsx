@@ -2,7 +2,7 @@
 
 import {useCallback} from 'react';
 import {MetaEvent, NotificationEvent, useConnectSSE, useSetHasNotifications} from '@/entities/notifications';
-import toast from '@/shared/lib/utils/toastService';
+import toast from '@/shared/ui/toast';
 
 type Props = {
   children: React.ReactNode;
