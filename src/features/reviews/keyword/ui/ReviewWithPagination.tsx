@@ -1,9 +1,12 @@
 'use client';
 
+import {useEffect} from 'react';
 import {useParams, useSearchParams} from 'next/navigation';
+import {useShallow} from 'zustand/react/shallow';
 import Pagination from '@/widgets/pagination';
 import {SortKey} from '@/features/reviews/sorting';
 import {NoSearchResults, ReviewArticle, useKeywordReviews} from '@/entities/reviews';
+import {useChatStore} from '@/entities/ai-search';
 
 type Props = {
   sort: SortKey;
@@ -15,6 +18,19 @@ export default function ReviewWithPagination({sort}: Props) {
 
   const currentPage = Number(searchParams.get('page')) || 1;
   const {results, total_pages} = useKeywordReviews(keyword, currentPage, sort);
+
+  const {openChat, limitState} = useChatStore(
+    useShallow(state => ({
+      openChat: state.openChat,
+      limitState: state.limitState,
+    })),
+  );
+
+  useEffect(() => {
+    if (results.length === 0 && limitState.remaining > 0) {
+      openChat();
+    }
+  }, [results.length, limitState.remaining, openChat]);
 
   if (results.length === 0) {
     return (

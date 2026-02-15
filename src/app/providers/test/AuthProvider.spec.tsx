@@ -1,16 +1,25 @@
 import {render, screen, waitFor} from '@testing-library/react';
 import AuthProvider from '../AuthProvider';
 import {useIsLoggedIn, useUserEmail, useUserNickname} from '@/entities/auth';
+import {useChatStore} from '@/entities/ai-search';
 import {getSession} from '@/entities/auth/apis/api-service';
 import {withAllContext} from '@/shared/lib/utils/withAllContext';
 
 jest.mock('@/entities/auth/apis/api-service');
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
+const DEFAULT_SEARCH_LIMIT = {
+  usage: 0,
+  maxLimit: 3,
+  remaining: 3,
+};
 
 describe('src/app/providers/AuthProvider.tsx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useChatStore.setState({
+      limitState: {usage: 999, maxLimit: 999, remaining: 0},
+    });
   });
 
   function TestComponent() {
@@ -33,6 +42,7 @@ describe('src/app/providers/AuthProvider.tsx', () => {
       isLoggedIn: true,
       userNickname: '지민',
       userEmail: 'jimin@email.com',
+      searchLimit: DEFAULT_SEARCH_LIMIT,
     });
 
     render(
@@ -49,7 +59,7 @@ describe('src/app/providers/AuthProvider.tsx', () => {
       expect(mockGetSession).toHaveBeenCalled();
     });
 
-    expect(screen.getByText('지민')).toBeInTheDocument();
+    expect(await screen.findByText('지민')).toBeInTheDocument();
     expect(screen.getByText('jimin@email.com')).toBeInTheDocument();
   });
 
@@ -58,6 +68,7 @@ describe('src/app/providers/AuthProvider.tsx', () => {
       isLoggedIn: false,
       userNickname: null,
       userEmail: null,
+      searchLimit: DEFAULT_SEARCH_LIMIT,
     });
 
     render(
@@ -82,6 +93,7 @@ describe('src/app/providers/AuthProvider.tsx', () => {
       isLoggedIn: true,
       userNickname: ENCODED_NAME,
       userEmail: 'jimin@email.com',
+      searchLimit: DEFAULT_SEARCH_LIMIT,
     });
 
     render(
@@ -96,6 +108,37 @@ describe('src/app/providers/AuthProvider.tsx', () => {
       expect(mockGetSession).toHaveBeenCalled();
     });
 
-    expect(screen.getByText('지민')).toBeInTheDocument();
+    expect(await screen.findByText('지민')).toBeInTheDocument();
+  });
+
+  it('세션의 searchLimit 정보를 chatStore에 저장한다.', async () => {
+    const SESSION_SEARCH_LIMIT = {
+      usage: 2,
+      maxLimit: 3,
+      remaining: 1,
+    };
+
+    mockGetSession.mockResolvedValue({
+      isLoggedIn: false,
+      userNickname: null,
+      userEmail: null,
+      searchLimit: SESSION_SEARCH_LIMIT,
+    });
+
+    render(
+      withAllContext(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(mockGetSession).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(useChatStore.getState().limitState).toEqual(SESSION_SEARCH_LIMIT);
+    });
   });
 });

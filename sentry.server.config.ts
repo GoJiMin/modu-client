@@ -14,8 +14,8 @@ const getEnvironmentConfig = () => {
     return {
       tracesSampleRate: 1.0,
       sampleRate: 1.0,
-      enableLogs: true,
-      debug: true,
+      enableLogs: false,
+      debug: false,
     };
   }
 };

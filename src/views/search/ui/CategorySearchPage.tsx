@@ -1,7 +1,6 @@
 import {Metadata} from 'next';
-import FloatingWriteButton from './FloatingWriteButton';
 import SearchDrawer from './SearchDrawer';
-import FloatingMoveUpButton from './FloatingMoveUpButton';
+import FloatingButtonSection from './FloatingButtonSection';
 import {CategoryReviews} from '@/features/reviews/category';
 
 export const metadata: Metadata = {
@@ -31,10 +30,7 @@ export default function CategorySearchPage() {
         </div>
       </header>
       <CategoryReviews />
-      <div className="fixed bottom-4 right-3 md:bottom-8 md:right-6 lg:right-8 flex flex-col gap-2">
-        <FloatingMoveUpButton />
-        <FloatingWriteButton />
-      </div>
+      <FloatingButtonSection />
     </section>
   );
 }

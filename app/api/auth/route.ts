@@ -1,14 +1,29 @@
 import {cookies} from 'next/headers';
 import {NextResponse} from 'next/server';
+import {getSearchLimitStatus} from '@/features/chatbot';
 
 export async function GET() {
   const cookieStore = await cookies();
 
-  if (!cookieStore.has('refreshToken')) {
+  const isLoggedIn = cookieStore.has('refreshToken');
+
+  const MAX_LIMIT = isLoggedIn ? 3 : 1;
+
+  const limitCookie = cookieStore.get('search_limit');
+  const {currentUsage, remaining} = getSearchLimitStatus(MAX_LIMIT, limitCookie);
+
+  const searchLimit = {
+    usage: currentUsage,
+    maxLimit: MAX_LIMIT,
+    remaining: remaining,
+  };
+
+  if (!isLoggedIn) {
     return NextResponse.json({
       isLoggedIn: false,
       userNickname: null,
       userEmail: null,
+      searchLimit,
     });
   }
 
@@ -31,6 +46,7 @@ export async function GET() {
       isLoggedIn: true,
       userNickname,
       userEmail,
+      searchLimit,
     },
     {status: 200},
   );
