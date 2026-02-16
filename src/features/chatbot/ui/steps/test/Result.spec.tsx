@@ -1,7 +1,7 @@
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Result from '../Result';
-import {useChatStore} from '@/entities/ai-search';
+import {CHAT_HISTORY_STORAGE_KEY, useChatStore} from '@/entities/ai-search/model/chatStore';
 import {getAIReviewSummary} from '@/entities/ai-search/apis/api-service';
 import {withAllContext} from '@/shared/lib/utils/withAllContext';
 
@@ -16,6 +16,7 @@ const mockGetAIReviewSummary = getAIReviewSummary as jest.MockedFunction<typeof 
 describe('src/features/chatbot/ui/steps/Result.tsx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
 
     useChatStore.setState({
       isOpen: false,
@@ -24,6 +25,8 @@ describe('src/features/chatbot/ui/steps/Result.tsx', () => {
       category: 'all',
       result: null,
       limitState: {usage: 0, maxLimit: 1, remaining: 1},
+      history: [],
+      selectedHistoryId: null,
     });
 
     mockGetAIReviewSummary.mockResolvedValue({
@@ -69,6 +72,79 @@ describe('src/features/chatbot/ui/steps/Result.tsx', () => {
     await waitFor(() => {
       expect(useChatStore.getState().step).toBe('input');
       expect(useChatStore.getState().keyword).toBe('');
+    });
+  });
+
+  it('결과 저장하기 버튼을 누르면 히스토리에 저장되고 버튼 문구가 변경된다.', async () => {
+    const user = userEvent.setup();
+
+    render(withAllContext(<Result />));
+
+    await screen.findByText('피자 토핑이 풍부하고 도우 식감이 좋아요.');
+
+    await user.click(screen.getByRole('button', {name: '결과 저장하기'}));
+
+    await waitFor(() => {
+      const history = useChatStore.getState().history;
+      expect(history).toHaveLength(1);
+      expect(history[0]).toMatchObject({
+        keyword: 'pizza',
+        category: 'all',
+      });
+    });
+
+    expect(screen.getByRole('button', {name: '히스토리에 저장됨'})).toBeDisabled();
+  });
+
+  it('검색 결과 상태가 fail이면 결과 저장하기 버튼을 노출하지 않는다.', async () => {
+    mockGetAIReviewSummary.mockResolvedValue({
+      status: 'fail',
+      summary: '검색 결과가 충분하지 않아요.',
+      sources: [],
+    });
+
+    render(withAllContext(<Result />));
+
+    expect(await screen.findByText('검색 결과가 충분하지 않아요.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: '결과 저장하기'})).not.toBeInTheDocument();
+  });
+
+  it('히스토리 결과를 다시 열면 API 요청 없이 저장된 결과를 표시한다.', async () => {
+    useChatStore.setState({
+      step: 'result',
+      keyword: 'saved-keyword',
+      category: 'food',
+      result: {
+        status: 'success',
+        summary: '저장된 결과 요약입니다.',
+        sources: [],
+      },
+      history: [
+        {
+          id: 'history-1',
+          keyword: 'saved-keyword',
+          category: 'food',
+          result: {
+            status: 'success',
+            summary: '저장된 결과 요약입니다.',
+            sources: [],
+          },
+          savedAt: Date.now(),
+        },
+      ],
+      selectedHistoryId: 'history-1',
+      limitState: {usage: 0, maxLimit: 1, remaining: 1},
+    });
+
+    render(withAllContext(<Result />));
+
+    expect(await screen.findByText('저장된 결과 요약입니다.')).toBeInTheDocument();
+    expect(mockGetAIReviewSummary).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', {name: '결과 저장하기'})).not.toBeInTheDocument();
+    expect(useChatStore.getState().limitState).toEqual({
+      usage: 0,
+      maxLimit: 1,
+      remaining: 1,
     });
   });
 });

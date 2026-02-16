@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     const validation = await validateQueryWithGroq({
       keyword,
       category,
-      TIMEOUT_MS: 1200,
+      TIMEOUT_MS: 2000,
     });
 
     if (!validation.isValid) {

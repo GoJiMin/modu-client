@@ -1,4 +1,5 @@
-import {render, screen, waitForElementToBeRemoved} from '@testing-library/react';
+import {render, screen, waitFor, waitForElementToBeRemoved} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ChatWindow from '../ChatWindow';
 import {useChatStore} from '@/entities/ai-search';
 import {CATEGORY_LIST} from '@/entities/review';
@@ -25,8 +26,11 @@ describe('src/features/chatbot/ui/ChatWindow.tsx', () => {
       isOpen: false,
       step: 'input',
       keyword: '',
+      category: 'all',
       result: null,
       limitState: {usage: 0, maxLimit: 1, remaining: 1},
+      history: [],
+      selectedHistoryId: null,
     });
   });
   it('챗봇 사용량 정보가 헤더에 표시된다.', () => {
@@ -63,6 +67,30 @@ describe('src/features/chatbot/ui/ChatWindow.tsx', () => {
       expect(screen.getByText('pizza', {exact: false})).toBeInTheDocument();
       // '전체' 카테고리 제외
       expect(screen.getAllByRole('listitem')).toHaveLength(CATEGORY_LIST.length - 1);
+    });
+
+    it('히스토리(history) 단계', () => {
+      useChatStore.setState({
+        step: 'history',
+        history: [
+          {
+            id: 'history-1',
+            keyword: 'pizza',
+            category: 'food',
+            result: {
+              status: 'success',
+              summary: '토핑이 풍부하고 가성비가 좋다는 후기가 많아요.',
+              sources: [],
+            },
+            savedAt: Date.now(),
+          },
+        ],
+      });
+
+      render(<ChatWindow />);
+
+      expect(screen.getByText(/저장해둔 요약 기록이에요\./)).toBeInTheDocument();
+      expect(screen.getByRole('button', {name: '히스토리 열기: pizza'})).toBeInTheDocument();
     });
 
     describe('결과(result) 단계', () => {
@@ -140,6 +168,34 @@ describe('src/features/chatbot/ui/ChatWindow.tsx', () => {
     });
   });
 
+  describe('헤더 동작', () => {
+    it('저장 기록 보기 버튼을 누르면 history 단계로 이동한다.', async () => {
+      const user = userEvent.setup();
+
+      useChatStore.setState({step: 'input'});
+      render(<ChatWindow />);
+
+      await user.click(screen.getByRole('button', {name: '저장 기록 보기'}));
+
+      await waitFor(() => {
+        expect(useChatStore.getState().step).toBe('history');
+      });
+    });
+
+    it('history 단계에서 검색 버튼을 누르면 input 단계로 이동한다.', async () => {
+      const user = userEvent.setup();
+
+      useChatStore.setState({step: 'history'});
+      render(<ChatWindow />);
+
+      await user.click(screen.getByRole('button', {name: '검색 단계로 이동'}));
+
+      await waitFor(() => {
+        expect(useChatStore.getState().step).toBe('input');
+      });
+    });
+  });
+
   describe('챗봇 사용량 도달', () => {
     it('비로그인 사용자는 로그인 유도 버튼을 표시한다.', () => {
       useChatStore.setState({
@@ -162,6 +218,31 @@ describe('src/features/chatbot/ui/ChatWindow.tsx', () => {
 
       expect(screen.getByText('오늘 남은 횟수 0 / 3')).toBeInTheDocument();
       expect(screen.getByText('내일 다시 오시면 제가 다시 열심히 찾아드릴게요!')).toBeInTheDocument();
+    });
+
+    it('사용량이 없어도 history 단계는 차단하지 않는다.', () => {
+      useChatStore.setState({
+        step: 'history',
+        history: [
+          {
+            id: 'history-1',
+            keyword: 'pizza',
+            category: 'food',
+            result: {
+              status: 'success',
+              summary: '토핑이 풍부하고 가성비가 좋다는 후기가 많아요.',
+              sources: [],
+            },
+            savedAt: Date.now(),
+          },
+        ],
+        limitState: {usage: 3, maxLimit: 3, remaining: 0},
+      });
+
+      render(<ChatWindow />);
+
+      expect(screen.getByText(/저장해둔 요약 기록이에요\./)).toBeInTheDocument();
+      expect(screen.queryByText(/로그인하시면/)).not.toBeInTheDocument();
     });
   });
 });

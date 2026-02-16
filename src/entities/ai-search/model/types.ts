@@ -12,6 +12,14 @@ export type AISearchResult = {
   sources: AISearchSource[];
 };
 
+export type ChatHistoryItem = {
+  id: string;
+  keyword: string;
+  category: Category;
+  result: AISearchResult;
+  savedAt: number;
+};
+
 export type AISearchCategory = Exclude<Category, 'all'>;
 
 export type SearchLimitState = {
