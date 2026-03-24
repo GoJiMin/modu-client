@@ -54,7 +54,7 @@ export const useChatStore = create<State & Action>()(
       selectedHistoryId: null,
 
       openChat: () => set({isOpen: true}),
-      closeChat: () => set({isOpen: false, category: 'all', selectedHistoryId: null}),
+      closeChat: () => set({isOpen: false}),
 
       goToInput: () => set({step: 'input', keyword: '', result: null, category: 'all', selectedHistoryId: null}),
       openHistory: () => set({step: 'history', selectedHistoryId: null}),

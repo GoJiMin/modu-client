@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom';
 
+// useRouter, useSearchParams 등 모킹
+jest.mock('next/navigation', () => jest.requireActual('next-router-mock/navigation'));
+
+// Next.js 이미지 컴포넌트 모킹
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({priority, fill, ...props}: {priority: boolean; fill: boolean}) => (

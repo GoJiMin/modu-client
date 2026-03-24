@@ -11,5 +11,7 @@ export const AISearchOptions = {
   summary: (keyword: string, category: Category) => ({
     queryKey: AISearchKeys.summary(keyword, category),
     queryFn: () => getAIReviewSummary(keyword, category),
+    staleTime: 0,
+    cacheTime: 0,
   }),
 };

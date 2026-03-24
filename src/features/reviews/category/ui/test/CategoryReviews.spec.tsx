@@ -15,9 +15,6 @@ jest.mock('@/entities/reviews/ui/ReviewsLoading', () => ({
   default: () => <div>loading</div>,
 }));
 
-window.HTMLElement.prototype.hasPointerCapture = jest.fn();
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
-
 const mockGetCategoryReviews = getCategoryReviews as jest.MockedFunction<typeof getCategoryReviews>;
 
 const createMockSearchReviewCard = (overrides: Partial<SearchReviewCard> = {}): SearchReviewCard => ({

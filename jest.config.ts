@@ -26,6 +26,14 @@ const config: Config = {
     'types.ts',
     '.*[cC]onfig\\.(js|ts|tsx)$',
   ],
+  coverageThreshold: {
+    global: {
+      statements: 94,
+      branches: 92,
+      functions: 91,
+      lines: 94,
+    },
+  },
 };
 
 export default createJestConfig(config);

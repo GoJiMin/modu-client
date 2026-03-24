@@ -70,6 +70,8 @@ export const SERVER_ERROR_MESSAGE: ErrorMessage = {
   SEARCH_FAILED: '검색에 실패했어요. 잠시 후 다시 시도해주세요.',
   GUEST_LIMIT_REACHED: '무료 체험이 끝났어요. 로그인하고 2회 더 검색해보세요.',
   DAILY_LIMIT_EXCEEDED: '오늘의 무료 검색 횟수(3회)를 모두 사용했어요. 내일 다시 시도해주세요.',
+  KEYWORD_TOO_SHORT: '두 글자 이상은 입력해 주셔야 찾아드릴 수 있어요! 😅',
+  KEYWORD_TOO_LONG: '너무 길어요! 20자 이내로 줄여주세요.',
 } as const;
 
 export const ERROR_MESSAGE = {

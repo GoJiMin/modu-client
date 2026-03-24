@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {useShallow} from 'zustand/react/shallow';
 import SourceCarousel from './SourceCarousel';
+import ChatRestartButton from './ChatRestartButton';
 import {
   AISearchResult,
   AISearchSource,
@@ -16,12 +17,11 @@ import {Category} from '@/entities/review';
 type ResultContentProps = {
   summary: string;
   sources: AISearchSource[];
-  onSearchAgain: () => void;
   onSave?: () => void;
   isSaved?: boolean;
 };
 
-function ResultContent({summary, sources, onSearchAgain, onSave, isSaved = false}: ResultContentProps) {
+function ResultContent({summary, sources, onSave, isSaved = false}: ResultContentProps) {
   return (
     <Step className="gap-6 h-fit min-h-full">
       <BotResponse>
@@ -54,12 +54,7 @@ function ResultContent({summary, sources, onSearchAgain, onSave, isSaved = false
             {isSaved ? '히스토리에 저장됨' : '결과 저장하기'}
           </button>
         )}
-        <button
-          onClick={onSearchAgain}
-          className="bg-mediumBlue text-white py-2.5 w-full rounded-full font-semibold hover:bg-boldBlue transition-colors"
-        >
-          다른 검색하기
-        </button>
+        <ChatRestartButton />
       </div>
     </Step>
   );
@@ -68,80 +63,72 @@ function ResultContent({summary, sources, onSearchAgain, onSave, isSaved = false
 type LiveResultProps = {
   keyword: string;
   category: Category;
-  isSaved: boolean;
-  onSave: (result: AISearchResult) => void;
-  onSearchAgain: () => void;
-  decreaseLimit: () => void;
 };
 
-function LiveResult({keyword, category, isSaved, onSave, onSearchAgain, decreaseLimit}: LiveResultProps) {
-  const {data} = useGetAIReviewSummary(keyword, category);
-  const {summary, sources, status} = data;
-  const isSuccess = status === 'success';
+function LiveResult({keyword, category}: LiveResultProps) {
+  const {setResult, decreaseLimit} = useChatStore(
+    useShallow(state => ({
+      setResult: state.setResult,
+      decreaseLimit: state.decreaseLimit,
+    })),
+  );
 
-  const hasDecreasedRef = useRef(false);
+  const {data} = useGetAIReviewSummary(keyword, category);
+  const isSuccess = data.status === 'success';
+
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
-    if (!hasDecreasedRef.current && isSuccess) {
-      decreaseLimit();
-      hasDecreasedRef.current = true;
+    if (!hasProcessedRef.current) {
+      if (isSuccess) {
+        decreaseLimit();
+      }
+
+      setResult(data);
+      hasProcessedRef.current = true;
     }
-  }, [decreaseLimit, isSuccess]);
+  }, [decreaseLimit, isSuccess, data, setResult]);
 
   return (
-    <ResultContent
-      summary={summary}
-      sources={sources}
-      onSearchAgain={onSearchAgain}
-      onSave={isSuccess ? () => onSave(data) : undefined}
-      isSaved={isSaved}
-    />
+    <Step className="gap-6 h-fit min-h-full">
+      <BotResponse>
+        <ChatBubble>열심히 요약하고 있어요! 잠시만 기다려주세요...</ChatBubble>
+      </BotResponse>
+    </Step>
   );
 }
-
 export default function Result() {
-  const {keyword, category, result, selectedHistoryId, goToInput, addHistory, decreaseLimit} = useChatStore(
+  const {keyword, category, result, selectedHistoryId, addHistory} = useChatStore(
     useShallow(state => ({
       keyword: state.keyword,
       category: state.category,
       result: state.result,
       selectedHistoryId: state.selectedHistoryId,
-      goToInput: state.goToInput,
       addHistory: state.addHistory,
-      decreaseLimit: state.decreaseLimit,
     })),
   );
 
   const [isSaved, setIsSaved] = useState(false);
-  const isHistoryResult = Boolean(selectedHistoryId && result);
-
-  useEffect(() => {
-    setIsSaved(false);
-  }, [keyword, category, selectedHistoryId]);
 
   const handleSave = (searchResult: AISearchResult) => {
     if (isSaved) return;
-
-    addHistory({
-      keyword,
-      category,
-      result: searchResult,
-    });
+    addHistory({keyword, category, result: searchResult});
     setIsSaved(true);
   };
 
-  if (isHistoryResult && result) {
-    return <ResultContent summary={result.summary} sources={result.sources} onSearchAgain={goToInput} />;
+  if (result) {
+    const isSuccess = result.status === 'success';
+    const canSave = !selectedHistoryId && isSuccess;
+
+    return (
+      <ResultContent
+        summary={result.summary}
+        sources={result.sources}
+        onSave={canSave ? () => handleSave(result) : undefined}
+        isSaved={isSaved}
+      />
+    );
   }
 
-  return (
-    <LiveResult
-      keyword={keyword}
-      category={category}
-      isSaved={isSaved}
-      onSave={handleSave}
-      onSearchAgain={goToInput}
-      decreaseLimit={decreaseLimit}
-    />
-  );
+  return <LiveResult keyword={keyword} category={category} />;
 }

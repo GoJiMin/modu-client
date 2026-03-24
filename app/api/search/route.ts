@@ -1,7 +1,8 @@
 import {NextResponse, NextRequest} from 'next/server';
+import {cookies} from 'next/headers';
+import {z} from 'zod';
 import {tavily} from '@tavily/core';
 import {validateQueryWithGroq} from './validateQueryWithGroq';
-import {cookies} from 'next/headers';
 import {getSearchLimitStatus} from '@/features/chatbot';
 
 const CATEGORY_SUFFIX: Record<string, string> = {
@@ -14,6 +15,20 @@ const CATEGORY_SUFFIX: Record<string, string> = {
   sports: '착용감 내구력 효과 사용기 장단점',
   all: '솔직 후기 장점 단점 내돈내산 추천',
 };
+
+const searchSchema = z.object({
+  keyword: z
+    .string({
+      required_error: 'SEARCH_KEYWORD_MISSING',
+      invalid_type_error: 'SEARCH_KEYWORD_MISSING',
+    })
+    .min(2, 'KEYWORD_TOO_SHORT')
+    .max(20, 'KEYWORD_TOO_LONG'),
+  category: z.string({
+    required_error: 'SEARCH_CATEGORY_MISSING',
+    invalid_type_error: 'SEARCH_CATEGORY_MISSING',
+  }),
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,42 +62,38 @@ export async function GET(req: NextRequest) {
       );
     }
     const searchParams = req.nextUrl.searchParams;
+    const queryParams = {
+      keyword: searchParams.get('keyword'),
+      category: searchParams.get('category'),
+    };
 
-    const keyword = searchParams.get('keyword');
-    const category = searchParams.get('category');
+    const validateParams = searchSchema.safeParse(queryParams);
 
-    if (!keyword) {
+    if (!validateParams.success) {
+      const [{message: errorCode}] = validateParams.error.errors;
+
       return NextResponse.json(
         {
-          title: 'SEARCH_KEYWORD_MISSING',
-          detail: '검색 키워드가 제공되지 않았습니다. 다시 시도해주세요',
+          title: errorCode,
+          detail: '검색 키워드 및 카테고리를 확인해주세요.',
           status: 400,
         },
         {status: 400},
       );
     }
 
-    if (!category) {
-      return NextResponse.json(
-        {
-          title: 'SEARCH_CATEGORY_MISSING',
-          detail: '검색 카테고리가 제공되지 않았습니다. 다시 시도해주세요',
-          status: 400,
-        },
-        {status: 400},
-      );
-    }
+    const {keyword, category} = validateParams.data;
 
-    const validation = await validateQueryWithGroq({
+    const validateQuery = await validateQueryWithGroq({
       keyword,
       category,
       TIMEOUT_MS: 2000,
     });
 
-    if (!validation.isValid) {
+    if (!validateQuery.isValid) {
       return NextResponse.json({
         status: 'fail',
-        summary: validation.message || '적절한 검색어가 아닌 것 같아요. 😅',
+        summary: validateQuery.message || '적절한 검색어가 아닌 것 같아요. 😅',
         sources: [],
       });
     }

@@ -77,10 +77,9 @@ describe('src/features/notification/ui/NotificationList.tsx', () => {
 
       await setupRender();
 
-      const lists = screen.getAllByRole('list');
-      const NotificationList = lists[0];
+      const notificationList = screen.getByRole('list', {name: '알림 목록'});
 
-      expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(3);
+      expect(within(notificationList).getAllByRole('listitem')).toHaveLength(3);
       expect(screen.getByText(targetNotificationConfig.getMessage(targetNotification.title))).toBeInTheDocument();
     });
   });
@@ -192,23 +191,22 @@ describe('src/features/notification/ui/NotificationList.tsx', () => {
 
         const {user} = await setupRender();
 
-        const lists = screen.getAllByRole('list');
-        const NotificationList = lists[0];
+        const notificationList = screen.getByRole('list', {name: '알림 목록'});
 
-        expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(4);
+        expect(within(notificationList).getAllByRole('listitem')).toHaveLength(4);
 
         // 알림 삭제
         const deleteButton = screen.getByLabelText(`${targetNotification.title} 알림 삭제`, {selector: 'button'});
         await user.click(deleteButton);
 
         // 즉시 화면에서 알림을 4개에서 3개로 삭제
-        expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(3);
+        expect(within(notificationList).getAllByRole('listitem')).toHaveLength(3);
         expect(screen.queryByText(targetNotificationMessage)).not.toBeInTheDocument();
 
         resolveDeleteNotification();
 
         await waitFor(() => {
-          expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(3);
+          expect(within(notificationList).getAllByRole('listitem')).toHaveLength(3);
           expect(screen.queryByText(targetNotificationMessage)).not.toBeInTheDocument();
         });
       });
@@ -233,23 +231,22 @@ describe('src/features/notification/ui/NotificationList.tsx', () => {
 
         const {user} = await setupRender();
 
-        const lists = screen.getAllByRole('list');
-        const NotificationList = lists[0];
+        const notificationList = screen.getByRole('list', {name: '알림 목록'});
 
-        expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(4);
+        expect(within(notificationList).getAllByRole('listitem')).toHaveLength(4);
 
         // 알림 삭제
         const deleteButton = screen.getByLabelText(`${targetNotification.title} 알림 삭제`, {selector: 'button'});
         await user.click(deleteButton);
 
         // 즉시 화면에서 알림을 4개에서 3개로 삭제
-        expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(3);
+        expect(within(notificationList).getAllByRole('listitem')).toHaveLength(3);
         expect(screen.queryByText(targetNotificationMessage)).not.toBeInTheDocument();
 
         rejectDeleteNotification();
 
         await waitFor(() => {
-          expect(within(NotificationList).getAllByRole('listitem')).toHaveLength(4);
+          expect(within(notificationList).getAllByRole('listitem')).toHaveLength(4);
           expect(screen.queryByText(targetNotificationMessage)).toBeInTheDocument();
         });
       });

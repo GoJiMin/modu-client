@@ -10,7 +10,7 @@ type Props = {
 
 export default function AuthProvider({children}: Props) {
   const {session, isSuccess} = useGetSession();
-  
+
   const updateUser = useUpdateUser();
   const setChatLimit = useChatStore(state => state.setLimit);
 
@@ -35,7 +35,7 @@ export default function AuthProvider({children}: Props) {
         remaining: session.searchLimit.remaining,
       });
     }
-  }, [updateUser, session, isSuccess]);
+  }, [updateUser, session, isSuccess, setChatLimit]);
 
   return children;
 }

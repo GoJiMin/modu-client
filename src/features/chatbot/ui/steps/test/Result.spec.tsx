@@ -63,13 +63,21 @@ describe('src/features/chatbot/ui/steps/Result.tsx', () => {
   it('다른 검색하기 버튼을 누르면 입력 단계로 돌아간다.', async () => {
     const user = userEvent.setup();
 
-    render(withAllContext(<Result />));
+    const TestWrapper = () => {
+      const step = useChatStore(state => state.step);
+      if (step !== 'result') return <p>{step}</p>;
+      return <Result />;
+    };
+
+    render(withAllContext(<TestWrapper />));
 
     await screen.findByText('피자 토핑이 풍부하고 도우 식감이 좋아요.');
 
     await user.click(screen.getByRole('button', {name: '다른 검색하기'}));
 
     await waitFor(() => {
+      expect(screen.getByText('input')).toBeInTheDocument();
+
       expect(useChatStore.getState().step).toBe('input');
       expect(useChatStore.getState().keyword).toBe('');
     });

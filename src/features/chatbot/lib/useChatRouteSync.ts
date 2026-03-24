@@ -43,7 +43,7 @@ export function useChatRouteSync() {
     } else {
       goToInput();
     }
-  }, [pathname, setKeyword, setStep, goToInput]);
+  }, [pathname, setKeyword, setStep, goToInput, isHidden]);
 
   return {isHidden};
 }

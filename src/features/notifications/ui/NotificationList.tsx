@@ -22,7 +22,7 @@ export default function NotificationList() {
 
   return (
     <>
-      <ul className="h-[53vh] sm:h-[620px] md:h-[550px] mt-4 md:mt-6 mx-2 md:mx-10 mb-8 sm:mb-10 md:mb-9 bg-white rounded-lg shadow-md shadow-gray-300 overflow-y-auto">
+      <ul aria-label='알림 목록' className="h-[53vh] sm:h-[620px] md:h-[550px] mt-4 md:mt-6 mx-2 md:mx-10 mb-8 sm:mb-10 md:mb-9 bg-white rounded-lg shadow-md shadow-gray-300 overflow-y-auto">
         {results.map(notification => (
           <li key={notification.id} className="relative">
             <NotificationCard notification={notification} page={currentPage} />
