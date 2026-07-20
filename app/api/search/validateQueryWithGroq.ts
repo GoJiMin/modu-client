@@ -42,7 +42,7 @@ async function _fetchGroqValidation(keyword: string, category: string): Promise<
       {role: 'user', content: prompt},
     ],
 
-    model: 'qwen/qwen3-32b',
+    model: 'openai/gpt-oss-120b',
 
     response_format: {type: 'json_object'},
     temperature: 0,
