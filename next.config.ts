@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {protocol: 'https', hostname: 'picsum.photos'},
-      {protocol: 'https', hostname: 'd1izijuzr22yly.cloudfront.net'},
+      {protocol: 'https', hostname: 'cdn.modu-review.com'},
     ],
     qualities: [60, 75],
     formats: ['image/avif', 'image/webp'],
